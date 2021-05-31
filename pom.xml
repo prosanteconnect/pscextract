@@ -13,19 +13,40 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>pscextract</name>
 	<description>Demo project for Spring Boot</description>
+
 	<properties>
 		<java.version>11</java.version>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.univocity/univocity-parsers -->
+		<dependency>
+			<groupId>com.univocity</groupId>
+			<artifactId>univocity-parsers</artifactId>
+			<version>2.9.0</version>
 		</dependency>
 	</dependencies>
 
@@ -34,6 +55,53 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Xmx4g</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<from>
+						<image>prosanteconnect/pscextract-base</image>
+					</from>
+					<to>
+						<image>prosanteconnect/pscextract</image>
+						<tags>
+							<tag>latest</tag>
+							<tag>${project.version}</tag>
+						</tags>
+					</to>
+					<container>
+						<user>root:root</user>
+						<mainClass>fr.ans.psc.pscextract.PscextractApplication</mainClass>
+						<args>
+							<arg>--server.servlet.context-path=/pscextract/v1</arg>
+						</args>
+						<ports>
+							<port>8080</port>
+						</ports>
+						<format>Docker</format>
+						<!--this sacrifices reproducibility since the timestamp will change with every build-->
+						<creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+						<!--<creationTime>2020-09-01T10:15:30+09:00</creationTime>-->
+					</container>
+					<extraDirectories>
+						<paths>
+							<path>
+								<from>src/main/extract-repo</from>
+								<!--repo where the extract will be stored, volume will be mapped with pwx driver-->
+								<into>/app/extract-repo</into>
+							</path>
+						</paths>
+					</extraDirectories>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
