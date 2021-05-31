@@ -2,6 +2,8 @@ package fr.ans.psc.pscextract.model;
 
 public class PsLine {
 
+    String idType;
+    String id;
     String nationalId;
     String lastName;
     String firstName;
@@ -14,6 +16,7 @@ public class PsLine {
     String email;
     String salutationCode;
     String profession_code;
+    String profession_categoryCode;
     String profession_salutationCode;
     String profession_lastName;
     String profession_firstName;
