@@ -173,11 +173,12 @@ public class ExtractionService {
         if ("".equals(filesDirectory)) {
             return filesDirectory + fileName;
         } else {
-            return filesDirectory + System.lineSeparator() + fileName;
+            return filesDirectory + '/' + fileName;
         }
     }
 
     public void transformCsv() throws IOException {
+        log.info("starting file transformation");
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
                 "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
                 "Téléphone (coord. correspondance)|Adresse e-mail (coord. correspondance)|Code civilité|Code profession|" +
@@ -218,7 +219,7 @@ public class ExtractionService {
         parserSettings.setNullValue("");
 
         CsvParser parser = new CsvParser(parserSettings);
-        parser.parse(new FileReader(getFilePath(extractName)));
+        parser.parse(new BufferedReader(new FileReader(getFilePath(extractName))));
         p.close();b.close();f.close();
         log.info("transformation complete!");
     }
