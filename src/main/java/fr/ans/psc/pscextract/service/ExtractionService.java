@@ -162,6 +162,7 @@ public class ExtractionService {
                 "--type=csv " +
                 "--out=" + getFilePath(extractName);
 
+        log.info("running command : {}", cmd);
         log.info("exporting schema {}", outCollection);
 
         Runtime.getRuntime().exec(cmd);

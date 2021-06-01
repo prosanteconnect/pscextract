@@ -46,7 +46,7 @@ public class ExtractionController {
     public String listFiles() {
         return Stream.of(Objects.requireNonNull(new File(filesDirectory).listFiles()))
                 .filter(file -> !file.isDirectory())
-                .map(File::getName)
+                .map(file -> file.getName() + ":" + file.length())
                 .collect(Collectors.toSet()).toString();
     }
 
