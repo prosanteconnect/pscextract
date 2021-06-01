@@ -160,7 +160,8 @@ public class ExtractionService {
                 "--host=" + mongoAddr + " " +
                 "--fields=" + fields + " " +
                 "--type=csv " +
-                "--out=" + getFilePath(extractName);
+                "--out=" + getFilePath(extractName) +
+                "--forceTableScan";
 
         log.info("running command : {}", cmd);
         log.info("exporting schema {}", outCollection);
