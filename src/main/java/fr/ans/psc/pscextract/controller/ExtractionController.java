@@ -1,6 +1,7 @@
 package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.pscextract.service.ExtractionService;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,6 @@ public class ExtractionController {
 
     @Value("${files.directory}")
     private String filesDirectory;
-
-    @Value("${compressed.name}")
-    private String compressedName;
 
     /**
      * logger.
@@ -83,8 +81,15 @@ public class ExtractionController {
     @GetMapping(value = "/download")
     public void getFile(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment; filename=" + compressedName);
+        response.setHeader("Content-Disposition", "attachment; filename=" + extractionService.zipName());
         extractionService.zipFile(response.getOutputStream());
+    }
+
+    @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String cleanAll() throws IOException {
+        FileUtils.cleanDirectory(new File(filesDirectory));
+        log.info("all files in {} were deleted!", filesDirectory);
+        return "all files in storage were deleted";
     }
 
 }

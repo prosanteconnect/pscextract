@@ -23,6 +23,8 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -42,11 +44,8 @@ public class ExtractionService {
      */
     private static final Logger log = LoggerFactory.getLogger(ExtractionService.class);
 
-    /**
-     * The Mongo template.
-     */
     @Autowired
-    MongoTemplate mongoTemplate;
+    private MongoTemplate mongoTemplate;
 
     @Value("${mongodb.outCollection}")
     private String outCollection;
@@ -63,27 +62,16 @@ public class ExtractionService {
     @Value("${extract.name}")
     private String extractName;
 
-    @Value("${output.name}")
-    private String outputName;
-
-    /**
-     * Instantiates a new Extraction service.
-     *
-     * @param mongoTemplate the mongo template
-     */
-    public ExtractionService(MongoTemplate mongoTemplate) {
-        this.mongoTemplate = mongoTemplate;
-    }
+    private String aggregationDate="197001010001";
 
     /**
      * Instantiates a new Extraction service.
      */
-    public ExtractionService() {
+    private ExtractionService() {
     }
 
     /**
      * Aggregate.
-     *
      */
     public void aggregate() {
         AggregationOperation unwindProfessions = Aggregation.unwind("professions");
@@ -147,8 +135,15 @@ public class ExtractionService {
         Aggregation aggregation = Aggregation.newAggregation(unwindProfessions, unwindExpertises, unwindWorkSituations, projection, out);
 
         mongoTemplate.aggregate(aggregation, inCollection, PsLine.class);
+
+        setAggregationDate();
     }
 
+    /**
+     * Extract.
+     *
+     * @throws IOException the io exception
+     */
     public void extract() throws IOException {
         List<String> fieldsList = Arrays.stream(PsLine.class.getDeclaredFields()).map(Field::getName).collect(Collectors.toList());
 
@@ -159,8 +154,8 @@ public class ExtractionService {
                 "--collection=" + outCollection + " " +
                 "--host=" + mongoAddr + " " +
                 "--fields=" + fields + " " +
+                "--out=" + getFilePath(extractName) + " " +
                 "--type=csv " +
-                "--out=" + getFilePath(extractName) +
                 "--forceTableScan";
 
         log.info("running command : {}", cmd);
@@ -171,14 +166,11 @@ public class ExtractionService {
         log.info("export done");
     }
 
-    private String getFilePath(String fileName) {
-        if ("".equals(filesDirectory)) {
-            return filesDirectory + fileName;
-        } else {
-            return filesDirectory + '/' + fileName;
-        }
-    }
-
+    /**
+     * Transform csv.
+     *
+     * @throws IOException the io exception
+     */
     public void transformCsv() throws IOException {
         log.info("starting file transformation");
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
@@ -196,10 +188,10 @@ public class ExtractionService {
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code Département (structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|";
-        Files.write(Paths.get(getFilePath(outputName)), Collections.singleton(header),
+        Files.write(Paths.get(getFilePath(extractRASS())), Collections.singleton(header),
                 StandardCharsets.UTF_8);
 
-        FileWriter f = new FileWriter(getFilePath(outputName), true);
+        FileWriter f = new FileWriter(getFilePath(extractRASS()), true);
         BufferedWriter b = new BufferedWriter(f);
         PrintWriter p = new PrintWriter(b);
 
@@ -226,8 +218,13 @@ public class ExtractionService {
         log.info("transformation complete!");
     }
 
+    /**
+     * Zip file.
+     *
+     * @param out the OutputStream
+     */
     public void zipFile(OutputStream out) {
-        FileSystemResource resource = new FileSystemResource(getFilePath(outputName));
+        FileSystemResource resource = new FileSystemResource(getFilePath(extractRASS()));
         try (ZipOutputStream zippedOut = new ZipOutputStream(out)) {
             ZipEntry e = new ZipEntry(Objects.requireNonNull(resource.getFilename()));
             // Configure the zip entry, the properties of the file
@@ -244,11 +241,36 @@ public class ExtractionService {
         }
     }
 
-    public void cleanup() {
-        File outputFile = new File(getFilePath(outputName));
-        File extractFile = new File(getFilePath(extractName));
-        outputFile.delete();
-        extractFile.delete();
+    /**
+     * Extract rass string.
+     *
+     * @return the string
+     */
+    public String extractRASS() {
+        return extractName + "_" + aggregationDate + ".txt";
+    }
+
+    /**
+     * Zip name string.
+     *
+     * @return the string
+     */
+    public String zipName() {
+        return extractName + "_" + aggregationDate + ".zip";
+    }
+
+    private String getFilePath(String fileName) {
+        if ("".equals(filesDirectory)) {
+            return filesDirectory + fileName;
+        } else {
+            return filesDirectory + '/' + fileName;
+        }
+    }
+
+    private void setAggregationDate() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        LocalDateTime now = LocalDateTime.now();
+        this.aggregationDate = dtf.format(now);
     }
 
 }
