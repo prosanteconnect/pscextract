@@ -34,7 +34,6 @@ class ExtractionServiceTest {
     @Test
     @Disabled
     void cleanupTest() {
-        es.cleanup();
     }
 
 }
