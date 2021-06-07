@@ -77,6 +77,12 @@ public class ExtractionService {
         AggregationOperation unwindProfessions = Aggregation.unwind("professions");
         AggregationOperation unwindExpertises = Aggregation.unwind("professions.expertises");
         AggregationOperation unwindWorkSituations = Aggregation.unwind("professions.workSituations");
+        AggregationOperation unwindStructureId = Aggregation.unwind("professions.workSituations.structures");
+        AggregationOperation unwindThisStructure = Aggregation.unwind("thisStructure");
+        AggregationOperation lookup = Aggregation.lookup("structure",
+                "professions.workSituations.structures.structureId",
+                "structureTechnicalId",
+                "thisStructure");
 
         ProjectionOperation projection = Aggregation.project()
                 .andExclude("_id")
@@ -98,41 +104,42 @@ public class ExtractionService {
                 .and("professions.salutationCode").as("profession_salutationCode")
                 .and("professions.lastName").as("profession_lastName")
                 .and("professions.firstName").as("profession_firstName")
-                .and("professions.expertises.categoryCode").as("profession_expertise_categoryCode")
+                .and("professions.expertises.typeCode").as("profession_expertise_typeCode")
                 .and("professions.expertises.code").as("profession_expertise_code")
                 .and("professions.workSituations.modeCode").as("profession_workSituation_modeCode")
                 .and("professions.workSituations.activitySectorCode").as("profession_workSituation_activitySectorCode")
                 .and("professions.workSituations.pharmacistTableSectionCode").as("profession_workSituation_pharmacistTableSectionCode")
                 .and("professions.workSituations.roleCode").as("profession_workSituation_roleCode")
-                .and("professions.workSituations.structure.siteSIRET").as("structure_siteSIRET")
-                .and("professions.workSituations.structure.siteSIREN").as("structure_siteSIREN")
-                .and("professions.workSituations.structure.siteFINESS").as("structure_siteFINESS")
-                .and("professions.workSituations.structure.legalEstablishmentFINESS").as("structure_legalEstablishmentFINESS")
-                .and("professions.workSituations.structure.structureTechnicalId").as("structure_structureTechnicalId")
-                .and("professions.workSituations.structure.legalCommercialName").as("structure_legalCommercialName")
-                .and("professions.workSituations.structure.publicCommercialName").as("structure_publicCommercialName")
-                .and("professions.workSituations.structure.recipientAdditionalInfo").as("structure_recipientAdditionalInfo")
-                .and("professions.workSituations.structure.geoLocationAdditionalInfo").as("structure_geoLocationAdditionalInfo")
-                .and("professions.workSituations.structure.streetNumber").as("structure_streetNumber")
-                .and("professions.workSituations.structure.streetNumberRepetitionIndex").as("structure_streetNumberRepetitionIndex")
-                .and("professions.workSituations.structure.streetCategoryCode").as("structure_streetCategoryCode")
-                .and("professions.workSituations.structure.streetLabel").as("structure_streetLabel")
-                .and("professions.workSituations.structure.distributionMention").as("structure_distributionMention")
-                .and("professions.workSituations.structure.cedexOffice").as("structure_cedexOffice")
-                .and("professions.workSituations.structure.postalCode").as("structure_postalCode")
-                .and("professions.workSituations.structure.communeCode").as("structure_communeCode")
-                .and("professions.workSituations.structure.countryCode").as("structure_countryCode")
-                .and("professions.workSituations.structure.phone").as("structure_phone")
-                .and("professions.workSituations.structure.phone2").as("structure_phone2")
-                .and("professions.workSituations.structure.fax").as("structure_fax")
-                .and("professions.workSituations.structure.email").as("structure_email")
-                .and("professions.workSituations.structure.departmentCode").as("structure_departmentCode")
-                .and("professions.workSituations.structure.oldStructureId").as("structure_oldStructureId")
-                .and("professions.workSituations.structure.registrationAuthority").as("structure_registrationAuthority");
+                .and("thisStructure.siteSIRET").as("structure_siteSIRET")
+                .and("thisStructure.siteSIREN").as("structure_siteSIREN")
+                .and("thisStructure.siteFINESS").as("structure_siteFINESS")
+                .and("thisStructure.legalEstablishmentFINESS").as("structure_legalEstablishmentFINESS")
+                .and("thisStructure.structureTechnicalId").as("structure_structureTechnicalId")
+                .and("thisStructure.legalCommercialName").as("structure_legalCommercialName")
+                .and("thisStructure.publicCommercialName").as("structure_publicCommercialName")
+                .and("thisStructure.recipientAdditionalInfo").as("structure_recipientAdditionalInfo")
+                .and("thisStructure.geoLocationAdditionalInfo").as("structure_geoLocationAdditionalInfo")
+                .and("thisStructure.streetNumber").as("structure_streetNumber")
+                .and("thisStructure.streetNumberRepetitionIndex").as("structure_streetNumberRepetitionIndex")
+                .and("thisStructure.streetCategoryCode").as("structure_streetCategoryCode")
+                .and("thisStructure.streetLabel").as("structure_streetLabel")
+                .and("thisStructure.distributionMention").as("structure_distributionMention")
+                .and("thisStructure.cedexOffice").as("structure_cedexOffice")
+                .and("thisStructure.postalCode").as("structure_postalCode")
+                .and("thisStructure.communeCode").as("structure_communeCode")
+                .and("thisStructure.countryCode").as("structure_countryCode")
+                .and("thisStructure.phone").as("structure_phone")
+                .and("thisStructure.phone2").as("structure_phone2")
+                .and("thisStructure.fax").as("structure_fax")
+                .and("thisStructure.email").as("structure_email")
+                .and("thisStructure.departmentCode").as("structure_departmentCode")
+                .and("thisStructure.oldStructureId").as("structure_oldStructureId")
+                .and("thisStructure.registrationAuthority").as("structure_registrationAuthority");
 
         OutOperation out = Aggregation.out(outCollection);
 
-        Aggregation aggregation = Aggregation.newAggregation(unwindProfessions, unwindExpertises, unwindWorkSituations, projection, out);
+        Aggregation aggregation = Aggregation.newAggregation(unwindProfessions,
+                unwindExpertises, unwindWorkSituations, unwindStructureId, lookup, unwindThisStructure, projection, out);
 
         mongoTemplate.aggregate(aggregation, inCollection, PsLine.class);
 

@@ -20,7 +20,7 @@ public class PsLine {
     String profession_salutationCode;
     String profession_lastName;
     String profession_firstName;
-    String profession_expertise_categoryCode;
+    String profession_expertise_typeCode;
     String profession_expertise_code;
     String profession_situation_modeCode;
     String profession_situation_activitySectorCode;
