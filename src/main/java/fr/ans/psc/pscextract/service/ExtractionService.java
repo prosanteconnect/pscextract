@@ -4,6 +4,7 @@ import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.ObjectRowProcessor;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
+import fr.ans.psc.pscextract.model.LinkToOtherIds;
 import fr.ans.psc.pscextract.model.PsLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.OutOperation;
-import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
@@ -74,75 +72,8 @@ public class ExtractionService {
      * Aggregate.
      */
     public void aggregate() {
-        AggregationOperation unwindProfessions = Aggregation.unwind("professions");
-        AggregationOperation unwindExpertises = Aggregation.unwind("professions.expertises");
-        AggregationOperation unwindWorkSituations = Aggregation.unwind("professions.workSituations");
-        AggregationOperation unwindStructureId = Aggregation.unwind("professions.workSituations.structures");
-        AggregationOperation unwindThisStructure = Aggregation.unwind("thisStructure");
-        AggregationOperation lookup = Aggregation.lookup("structure",
-                "professions.workSituations.structures.structureId",
-                "structureTechnicalId",
-                "thisStructure");
-
-        ProjectionOperation projection = Aggregation.project()
-                .andExclude("_id")
-                .and("idType").as("idType")
-                .and("id").as("id")
-                .and("nationalId").as("nationalId")
-                .and("lastName").as("lastName")
-                .and("firstName").as("firstName")
-                .and("dateOfBirth").as("dateOfBirth")
-                .and("birthAddressCode").as("birthAddressCode")
-                .and("birthCountryCode").as("birthCountryCode")
-                .and("birthAddress").as("birthAddress")
-                .and("genderCode").as("genderCode")
-                .and("phone").as("phone")
-                .and("email").as("email")
-                .and("salutationCode").as("salutationCode")
-                .and("professions.code").as("profession_code")
-                .and("professions.categoryCode").as("profession_categoryCode")
-                .and("professions.salutationCode").as("profession_salutationCode")
-                .and("professions.lastName").as("profession_lastName")
-                .and("professions.firstName").as("profession_firstName")
-                .and("professions.expertises.typeCode").as("profession_expertise_typeCode")
-                .and("professions.expertises.code").as("profession_expertise_code")
-                .and("professions.workSituations.modeCode").as("profession_workSituation_modeCode")
-                .and("professions.workSituations.activitySectorCode").as("profession_workSituation_activitySectorCode")
-                .and("professions.workSituations.pharmacistTableSectionCode").as("profession_workSituation_pharmacistTableSectionCode")
-                .and("professions.workSituations.roleCode").as("profession_workSituation_roleCode")
-                .and("thisStructure.siteSIRET").as("structure_siteSIRET")
-                .and("thisStructure.siteSIREN").as("structure_siteSIREN")
-                .and("thisStructure.siteFINESS").as("structure_siteFINESS")
-                .and("thisStructure.legalEstablishmentFINESS").as("structure_legalEstablishmentFINESS")
-                .and("thisStructure.structureTechnicalId").as("structure_structureTechnicalId")
-                .and("thisStructure.legalCommercialName").as("structure_legalCommercialName")
-                .and("thisStructure.publicCommercialName").as("structure_publicCommercialName")
-                .and("thisStructure.recipientAdditionalInfo").as("structure_recipientAdditionalInfo")
-                .and("thisStructure.geoLocationAdditionalInfo").as("structure_geoLocationAdditionalInfo")
-                .and("thisStructure.streetNumber").as("structure_streetNumber")
-                .and("thisStructure.streetNumberRepetitionIndex").as("structure_streetNumberRepetitionIndex")
-                .and("thisStructure.streetCategoryCode").as("structure_streetCategoryCode")
-                .and("thisStructure.streetLabel").as("structure_streetLabel")
-                .and("thisStructure.distributionMention").as("structure_distributionMention")
-                .and("thisStructure.cedexOffice").as("structure_cedexOffice")
-                .and("thisStructure.postalCode").as("structure_postalCode")
-                .and("thisStructure.communeCode").as("structure_communeCode")
-                .and("thisStructure.countryCode").as("structure_countryCode")
-                .and("thisStructure.phone").as("structure_phone")
-                .and("thisStructure.phone2").as("structure_phone2")
-                .and("thisStructure.fax").as("structure_fax")
-                .and("thisStructure.email").as("structure_email")
-                .and("thisStructure.departmentCode").as("structure_departmentCode")
-                .and("thisStructure.oldStructureId").as("structure_oldStructureId")
-                .and("thisStructure.registrationAuthority").as("structure_registrationAuthority");
-
-        OutOperation out = Aggregation.out(outCollection);
-
-        Aggregation aggregation = Aggregation.newAggregation(unwindProfessions,
-                unwindExpertises, unwindWorkSituations, unwindStructureId, lookup, unwindThisStructure, projection, out);
-
-        mongoTemplate.aggregate(aggregation, inCollection, PsLine.class);
-
+        aggregateLink();
+        aggregatePsLines();
         setAggregationDate();
     }
 
@@ -194,7 +125,7 @@ public class ExtractionService {
                 "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code Département (structure)|" +
-                "Ancien identifiant de la structure|Autorité d'enregistrement|";
+                "Ancien identifiant de la structure|Autorité d'enregistrement|Autres Ids|";
         Files.write(Paths.get(getFilePath(extractRASS())), Collections.singleton(header),
                 StandardCharsets.UTF_8);
 
@@ -206,10 +137,9 @@ public class ExtractionService {
         ObjectRowProcessor rowProcessor = new ObjectRowProcessor() {
             @Override
             public void rowProcessed(Object[] objects, ParsingContext parsingContext) {
-                String line = String.join("|", Arrays.asList(objects).toArray(new String[objects.length])) + "|";
+                String line = String.join("|", getLineArray(objects)) + "|";
                 p.println(line);
             }
-
         };
 
         CsvParserSettings parserSettings = new CsvParserSettings();
@@ -274,10 +204,134 @@ public class ExtractionService {
         }
     }
 
+    private void aggregateLink() {
+        String group = "{$group: {_id: '$nationalId', otherIdsArr: {$addToSet: '$nationalIdRef'}}}";
+        String project = "{$project: {otherIds: {$reduce: {input: '$otherIdsArr', initialValue: '', in: {$concat: ['$$value', ' ', '$$this']}}}}}";
+        OutOperation out = Aggregation.out("extractOtherIds");
+        TypedAggregation<LinkToOtherIds> aggregation = Aggregation.newAggregation(
+                LinkToOtherIds.class,
+                new CustomAggregationOperation(group),
+                new CustomAggregationOperation(project),
+                out
+        );
+        mongoTemplate.aggregate(aggregation, inCollection, LinkToOtherIds.class);
+    }
+
+    private void aggregatePsLines() {
+        String match = "{$match: {$expr: {$gt: ['$activated', '$deactivated']}}}";
+        AggregationOperation lookupPs = Aggregation.lookup("ps", "nationalId", "nationalId", "thisPs");
+        AggregationOperation unwindPs = Aggregation.unwind("thisPs");
+        AggregationOperation unwindProfessions = Aggregation.unwind("thisPs.professions");
+        AggregationOperation unwindExpertises = Aggregation.unwind("thisPs.professions.expertises");
+        AggregationOperation unwindWorkSituations = Aggregation.unwind("thisPs.professions.workSituations");
+        AggregationOperation unwindStructureId = Aggregation.unwind("thisPs.professions.workSituations.structures");
+        AggregationOperation lookupStructure = Aggregation.lookup("structure",
+                "thisPs.professions.workSituations.structures.structureId",
+                "structureTechnicalId",
+                "thisStructure");
+        AggregationOperation unwindThisStructure = Aggregation.unwind("thisStructure");
+        AggregationOperation lookupOtherIds = Aggregation.lookup("extractOtherIds", "nationalId", "_id", "thisOtherIds");
+        AggregationOperation unwindOtherIds = Aggregation.unwind("thisOtherIds");
+
+        ProjectionOperation projection = Aggregation.project()
+                .andExclude("_id")
+                .and("thisPs.idType").as("idType")
+                .and("thisPs.id").as("id")
+                .and("nationalId").as("nationalIdRef")
+                .and("thisPs.lastName").as("lastName")
+                .and("thisPs.firstName").as("firstName")
+                .and("thisPs.dateOfBirth").as("dateOfBirth")
+                .and("thisPs.birthAddressCode").as("birthAddressCode")
+                .and("thisPs.birthCountryCode").as("birthCountryCode")
+                .and("thisPs.birthAddress").as("birthAddress")
+                .and("thisPs.genderCode").as("genderCode")
+                .and("thisPs.phone").as("phone")
+                .and("thisPs.email").as("email")
+                .and("thisPs.salutationCode").as("salutationCode")
+                .and("thisPs.professions.code").as("profession_code")
+                .and("thisPs.professions.categoryCode").as("profession_categoryCode")
+                .and("thisPs.professions.salutationCode").as("profession_salutationCode")
+                .and("thisPs.professions.lastName").as("profession_lastName")
+                .and("thisPs.professions.firstName").as("profession_firstName")
+                .and("thisPs.professions.expertises.typeCode").as("profession_expertise_typeCode")
+                .and("thisPs.professions.expertises.code").as("profession_expertise_code")
+                .and("thisPs.professions.workSituations.modeCode").as("profession_workSituation_modeCode")
+                .and("thisPs.professions.workSituations.activitySectorCode").as("profession_workSituation_activitySectorCode")
+                .and("thisPs.professions.workSituations.pharmacistTableSectionCode").as("profession_workSituation_pharmacistTableSectionCode")
+                .and("thisPs.professions.workSituations.roleCode").as("profession_workSituation_roleCode")
+                .and("thisStructure.siteSIRET").as("structure_siteSIRET")
+                .and("thisStructure.siteSIREN").as("structure_siteSIREN")
+                .and("thisStructure.siteFINESS").as("structure_siteFINESS")
+                .and("thisStructure.legalEstablishmentFINESS").as("structure_legalEstablishmentFINESS")
+                .and("thisStructure.structureTechnicalId").as("structure_structureTechnicalId")
+                .and("thisStructure.legalCommercialName").as("structure_legalCommercialName")
+                .and("thisStructure.publicCommercialName").as("structure_publicCommercialName")
+                .and("thisStructure.recipientAdditionalInfo").as("structure_recipientAdditionalInfo")
+                .and("thisStructure.geoLocationAdditionalInfo").as("structure_geoLocationAdditionalInfo")
+                .and("thisStructure.streetNumber").as("structure_streetNumber")
+                .and("thisStructure.streetNumberRepetitionIndex").as("structure_streetNumberRepetitionIndex")
+                .and("thisStructure.streetCategoryCode").as("structure_streetCategoryCode")
+                .and("thisStructure.streetLabel").as("structure_streetLabel")
+                .and("thisStructure.distributionMention").as("structure_distributionMention")
+                .and("thisStructure.cedexOffice").as("structure_cedexOffice")
+                .and("thisStructure.postalCode").as("structure_postalCode")
+                .and("thisStructure.communeCode").as("structure_communeCode")
+                .and("thisStructure.countryCode").as("structure_countryCode")
+                .and("thisStructure.phone").as("structure_phone")
+                .and("thisStructure.phone2").as("structure_phone2")
+                .and("thisStructure.fax").as("structure_fax")
+                .and("thisStructure.email").as("structure_email")
+                .and("thisStructure.departmentCode").as("structure_departmentCode")
+                .and("thisStructure.oldStructureId").as("structure_oldStructureId")
+                .and("thisStructure.registrationAuthority").as("structure_registrationAuthority")
+                .and("thisOtherIds.otherIds").as("otherIds");
+
+        OutOperation out = Aggregation.out(outCollection);
+
+        TypedAggregation<PsLine> aggregation = Aggregation.newAggregation(
+                PsLine.class,
+                new CustomAggregationOperation(match),
+                lookupPs, unwindPs, unwindProfessions, unwindExpertises, unwindWorkSituations, unwindStructureId,
+                lookupStructure, unwindThisStructure,
+                lookupOtherIds, unwindOtherIds,
+                projection,
+                out
+        );
+        mongoTemplate.aggregate(aggregation, inCollection, PsLine.class);
+    }
+
     private void setAggregationDate() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
         LocalDateTime now = LocalDateTime.now();
         this.aggregationDate = dtf.format(now);
+    }
+
+    private String[] getLineArray(Object[] objects) {
+        String[] lineArr = Arrays.asList(objects).toArray(new String[objects.length]);
+        String[] linkElementList = lineArr[lineArr.length - 1].trim().split(" ");
+        for (int i=0; i<linkElementList.length; i++) {
+            linkElementList[i] = getLinkString(linkElementList[i]);
+        }
+        return lineArr;
+    }
+
+    private String getLinkString(String s) {
+        switch (s.charAt(0)) {
+            case ('0'):
+            case ('1'):
+                return s+','+"ADELI"+','+'1';
+            case ('3'):
+                return s+','+"FINESS"+','+'1';
+            case ('4'):
+                return s+','+"SIREN"+','+'1';
+            case ('5'):
+                return s+','+"SIRET"+','+'1';
+            case ('6'):
+            case ('8'):
+                return s+','+"RPPS"+','+'1';
+            default:
+                return s+','+"ADELI"+','+'1';
+        }
     }
 
 }

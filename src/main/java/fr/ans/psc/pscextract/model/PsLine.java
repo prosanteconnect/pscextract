@@ -51,5 +51,6 @@ public class PsLine {
     String structure_departmentCode;
     String structure_oldStructureId;
     String structure_registrationAuthority;
+    String otherIds;
 
 }

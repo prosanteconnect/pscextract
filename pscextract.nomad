@@ -46,11 +46,9 @@ server.servlet.context-path=/pscextract/v1
 mongodb.addr={{ range service "psc-mongodb" }}{{ .Address }}:{{ .Port }}{{ end }}
 mongodb.name=mongodb
 mongodb.outCollection=extractRass
-mongodb.inCollection=ps
+mongodb.inCollection=psref
 files.directory=/app/extract-repo
-extract.name=deleteme
-output.name=PSC-extract.txt
-compressed.name=PSC-extract.zip
+extract.name=PSC-extract
 EOF
         destination = "secrets/application.properties"
       }
