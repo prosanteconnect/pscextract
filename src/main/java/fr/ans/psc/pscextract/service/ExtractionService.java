@@ -221,23 +221,23 @@ public class ExtractionService {
         String match = "{$match: {$expr: {$gt: ['$activated', '$deactivated']}}}";
         AggregationOperation lookupPs = Aggregation.lookup("ps", "nationalId", "nationalId", "thisPs");
         AggregationOperation unwindPs = Aggregation.unwind("thisPs");
-        AggregationOperation unwindProfessions = Aggregation.unwind("thisPs.professions");
-        AggregationOperation unwindExpertises = Aggregation.unwind("thisPs.professions.expertises");
-        AggregationOperation unwindWorkSituations = Aggregation.unwind("thisPs.professions.workSituations");
-        AggregationOperation unwindStructureId = Aggregation.unwind("thisPs.professions.workSituations.structures");
+        AggregationOperation unwindProfessions = Aggregation.unwind("thisPs.professions", true);
+        AggregationOperation unwindExpertises = Aggregation.unwind("thisPs.professions.expertises", true);
+        AggregationOperation unwindWorkSituations = Aggregation.unwind("thisPs.professions.workSituations", true);
+        AggregationOperation unwindStructureId = Aggregation.unwind("thisPs.professions.workSituations.structures", true);
         AggregationOperation lookupStructure = Aggregation.lookup("structure",
                 "thisPs.professions.workSituations.structures.structureId",
                 "structureTechnicalId",
                 "thisStructure");
-        AggregationOperation unwindThisStructure = Aggregation.unwind("thisStructure");
+        AggregationOperation unwindThisStructure = Aggregation.unwind("thisStructure", true);
         AggregationOperation lookupOtherIds = Aggregation.lookup("extractOtherIds", "nationalId", "_id", "thisOtherIds");
-        AggregationOperation unwindOtherIds = Aggregation.unwind("thisOtherIds");
+        AggregationOperation unwindOtherIds = Aggregation.unwind("thisOtherIds", true);
 
         ProjectionOperation projection = Aggregation.project()
                 .andExclude("_id")
                 .and("thisPs.idType").as("idType")
                 .and("thisPs.id").as("id")
-                .and("nationalId").as("nationalIdRef")
+                .and("nationalIdRef").as("nationalId")
                 .and("thisPs.lastName").as("lastName")
                 .and("thisPs.firstName").as("firstName")
                 .and("thisPs.dateOfBirth").as("dateOfBirth")
@@ -308,17 +308,18 @@ public class ExtractionService {
 
     private String[] getLineArray(Object[] objects) {
         String[] lineArr = Arrays.asList(objects).toArray(new String[objects.length]);
-        String[] linkElementList = lineArr[lineArr.length - 1].trim().split(" ");
-        for (int i=0; i<linkElementList.length; i++) {
-            linkElementList[i] = getLinkString(linkElementList[i]);
+        String[] linkElementArr = lineArr[lineArr.length - 1].trim().split(" ");
+        for (int i=0; i<linkElementArr.length; i++) {
+            linkElementArr[i] = getLinkString(linkElementArr[i]);
         }
+        lineArr[lineArr.length-1] = String.join(";", linkElementArr);
         return lineArr;
     }
 
     private String getLinkString(String s) {
         switch (s.charAt(0)) {
-            case ('0'):
             case ('1'):
+                if (s.charAt(1) == '0') return s+','+"MSSante"+','+'1';
                 return s+','+"ADELI"+','+'1';
             case ('3'):
                 return s+','+"FINESS"+','+'1';

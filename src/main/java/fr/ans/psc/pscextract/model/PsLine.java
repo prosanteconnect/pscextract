@@ -22,10 +22,10 @@ public class PsLine {
     String profession_firstName;
     String profession_expertise_typeCode;
     String profession_expertise_code;
-    String profession_situation_modeCode;
-    String profession_situation_activitySectorCode;
-    String profession_situation_pharmacistTableSectionCode;
-    String profession_situation_roleCode;
+    String profession_workSituation_modeCode;
+    String profession_workSituation_activitySectorCode;
+    String profession_workSituation_pharmacistTableSectionCode;
+    String profession_workSituation_roleCode;
     String structure_siteSIRET;
     String structure_siteSIREN;
     String structure_siteFINESS;
