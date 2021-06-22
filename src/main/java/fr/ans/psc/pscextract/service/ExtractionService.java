@@ -308,18 +308,20 @@ public class ExtractionService {
 
     private String[] getLineArray(Object[] objects) {
         String[] lineArr = Arrays.asList(objects).toArray(new String[objects.length]);
-        String[] linkElementArr = lineArr[lineArr.length - 1].trim().split(" ");
+        lineArr[0] = String.valueOf(lineArr[2].charAt(0)); // first number of nationalId
+        lineArr[1] = lineArr[2].substring(1);              // nationalId without first number
+        String[] linkElementArr = lineArr[lineArr.length - 1].trim().split(" ");  // last element split to array
         for (int i=0; i<linkElementArr.length; i++) {
-            linkElementArr[i] = getLinkString(linkElementArr[i]);
+            linkElementArr[i] = getLinkString(linkElementArr[i]);  // building each section
         }
-        lineArr[lineArr.length-1] = String.join(";", linkElementArr);
+        lineArr[lineArr.length-1] = String.join(";", linkElementArr);  // putting it back together
         return lineArr;
     }
 
     private String getLinkString(String s) {
         switch (s.charAt(0)) {
             case ('1'):
-                if (s.charAt(1) == '0') return s+','+"MSSante"+','+'1';
+                // if (s.charAt(1) == '0') return s+','+"MSSante"+','+'1';
                 return s+','+"ADELI"+','+'1';
             case ('3'):
                 return s+','+"FINESS"+','+'1';
