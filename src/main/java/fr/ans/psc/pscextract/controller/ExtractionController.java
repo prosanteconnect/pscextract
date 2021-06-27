@@ -7,10 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -49,33 +51,45 @@ public class ExtractionController {
     }
 
     @PostMapping(value = "/aggregate")
-    public String aggregate() {
-        ForkJoinPool.commonPool().submit(() -> extractionService.aggregate());
-        return "aggregating...";
+    public DeferredResult<ResponseEntity<String>> aggregate() {
+        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                extractionService.aggregate();
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            output.setResult(ResponseEntity.ok("Aggregation done."));
+        });
+        return output;
     }
 
     @PostMapping(value = "/extract")
-    public String extract() {
+    public DeferredResult<ResponseEntity<String>> extract() {
+        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 extractionService.extract();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
+            output.setResult(ResponseEntity.ok("Extraction done."));
         });
-        return "extracting...";
+        return output;
     }
 
     @PostMapping(value = "/transform")
-    public String transform() {
+    public DeferredResult<ResponseEntity<String>> transform() {
+        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 extractionService.transformCsv();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
+            output.setResult(ResponseEntity.ok("Transformation done."));
         });
-        return "transforming...";
+        return output;
     }
 
     @GetMapping(value = "/download")

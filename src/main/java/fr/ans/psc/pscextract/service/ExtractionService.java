@@ -213,7 +213,10 @@ public class ExtractionService {
                 new CustomAggregationOperation(group),
                 new CustomAggregationOperation(project),
                 out
-        );
+        ).withOptions(Aggregation.newAggregationOptions().allowDiskUse(true).build());
+        // allowDiskUse is so that aggregation stages can write data to the _tmp subdirectory in the dbPath directory.
+        // need to set it to true otherwise cant use 'group' on documents > 16MB
+
         mongoTemplate.aggregate(aggregation, inCollection, LinkToOtherIds.class);
     }
 
@@ -297,6 +300,7 @@ public class ExtractionService {
                 projection,
                 out
         );
+
         mongoTemplate.aggregate(aggregation, inCollection, PsLine.class);
     }
 
