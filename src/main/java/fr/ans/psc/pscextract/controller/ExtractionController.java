@@ -59,6 +59,7 @@ public class ExtractionController {
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
+            log.info("Aggregation done.");
             output.setResult(ResponseEntity.ok("Aggregation done."));
         });
         return output;
@@ -73,6 +74,7 @@ public class ExtractionController {
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
+            log.info("Extraction done.");
             output.setResult(ResponseEntity.ok("Extraction done."));
         });
         return output;
@@ -87,6 +89,7 @@ public class ExtractionController {
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
+            log.info("Transformation done.");
             output.setResult(ResponseEntity.ok("Transformation done."));
         });
         return output;

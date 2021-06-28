@@ -72,9 +72,9 @@ public class ExtractionService {
      * Aggregate.
      */
     public void aggregate() {
+        setAggregationDate();
         aggregateLink();
         aggregatePsLines();
-        setAggregationDate();
     }
 
     /**
@@ -126,6 +126,7 @@ public class ExtractionService {
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code Département (structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres Ids|";
+        if ("197001010001".equals(aggregationDate)) setAggregationDate();
         Files.write(Paths.get(getFilePath(extractRASS())), Collections.singleton(header),
                 StandardCharsets.UTF_8);
 
@@ -307,7 +308,7 @@ public class ExtractionService {
     private void setAggregationDate() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
         LocalDateTime now = LocalDateTime.now();
-        this.aggregationDate = dtf.format(now);
+        aggregationDate = dtf.format(now);
     }
 
     private String[] getLineArray(Object[] objects) {
