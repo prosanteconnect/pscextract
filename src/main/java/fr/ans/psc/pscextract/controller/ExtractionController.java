@@ -1,6 +1,8 @@
 package fr.ans.psc.pscextract.controller;
 
+import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.ExtractionService;
+import fr.ans.psc.pscextract.service.TransformationService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,12 @@ public class ExtractionController {
 
     @Autowired
     ExtractionService extractionService;
+
+    @Autowired
+    AggregationService aggregationService;
+
+    @Autowired
+    TransformationService transformationService;
 
     @Value("${files.directory}")
     private String filesDirectory;
@@ -55,7 +63,7 @@ public class ExtractionController {
         DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
         ForkJoinPool.commonPool().submit(() -> {
             try {
-                extractionService.aggregate();
+                aggregationService.aggregate();
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
@@ -85,7 +93,7 @@ public class ExtractionController {
         DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
         ForkJoinPool.commonPool().submit(() -> {
             try {
-                extractionService.transformCsv();
+                transformationService.transformCsv();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
@@ -98,8 +106,8 @@ public class ExtractionController {
     @GetMapping(value = "/download")
     public void getFile(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment; filename=" + extractionService.zipName());
-        extractionService.zipFile(response.getOutputStream());
+        response.setHeader("Content-Disposition", "attachment; filename=" + transformationService.zipName());
+        transformationService.zipFile(response.getOutputStream());
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
