@@ -1,16 +1,20 @@
 package fr.ans.psc.pscextract.controller;
 
+import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.ExtractionService;
+import fr.ans.psc.pscextract.service.TransformationService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -25,6 +29,12 @@ public class ExtractionController {
 
     @Autowired
     ExtractionService extractionService;
+
+    @Autowired
+    AggregationService aggregationService;
+
+    @Autowired
+    TransformationService transformationService;
 
     @Value("${files.directory}")
     private String filesDirectory;
@@ -49,40 +59,55 @@ public class ExtractionController {
     }
 
     @PostMapping(value = "/aggregate")
-    public String aggregate() {
-        ForkJoinPool.commonPool().submit(() -> extractionService.aggregate());
-        return "aggregating...";
+    public DeferredResult<ResponseEntity<String>> aggregate() {
+        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                aggregationService.aggregate();
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            log.info("Aggregation done.");
+            output.setResult(ResponseEntity.ok("Aggregation done."));
+        });
+        return output;
     }
 
     @PostMapping(value = "/extract")
-    public String extract() {
+    public DeferredResult<ResponseEntity<String>> extract() {
+        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 extractionService.extract();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
+            log.info("Extraction done.");
+            output.setResult(ResponseEntity.ok("Extraction done."));
         });
-        return "extracting...";
+        return output;
     }
 
     @PostMapping(value = "/transform")
-    public String transform() {
+    public DeferredResult<ResponseEntity<String>> transform() {
+        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
         ForkJoinPool.commonPool().submit(() -> {
             try {
-                extractionService.transformCsv();
+                transformationService.transformCsv();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
+            log.info("Transformation done.");
+            output.setResult(ResponseEntity.ok("Transformation done."));
         });
-        return "transforming...";
+        return output;
     }
 
     @GetMapping(value = "/download")
     public void getFile(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment; filename=" + extractionService.zipName());
-        extractionService.zipFile(response.getOutputStream());
+        response.setHeader("Content-Disposition", "attachment; filename=" + transformationService.zipName());
+        transformationService.zipFile(response.getOutputStream());
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)

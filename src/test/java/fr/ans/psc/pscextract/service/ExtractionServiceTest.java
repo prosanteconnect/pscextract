@@ -13,10 +13,16 @@ class ExtractionServiceTest {
     @Autowired
     ExtractionService es;
 
+    @Autowired
+    AggregationService as;
+
+    @Autowired
+    TransformationService ts;
+
     @Test
     @Disabled
     void aggregateTest() {
-        es.aggregate();
+        as.aggregate();
     }
 
     @Test
@@ -28,7 +34,7 @@ class ExtractionServiceTest {
     @Test
     @Disabled
     void transformTest() throws IOException {
-        es.transformCsv();
+        ts.transformCsv();
     }
 
     @Test
