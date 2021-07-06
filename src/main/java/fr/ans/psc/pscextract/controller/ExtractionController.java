@@ -72,17 +72,15 @@ public class ExtractionController {
     }
 
     @PostMapping(value = "/export")
-    public DeferredResult<ResponseEntity<String>> export() {
-        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
+    public String export() {
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 exportService.export();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
-            output.setResult(ResponseEntity.ok("Export done."));
         });
-        return output;
+        return "Exporting ...";
     }
 
     @PostMapping(value = "/transform")
