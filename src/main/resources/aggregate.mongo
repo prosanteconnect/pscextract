@@ -1,0 +1,109 @@
+use mongodb
+
+db.psref.aggregate([
+	{$group: {
+		_id: "$nationalId",
+		otherIdsArr: {$addToSet: "$nationalIdRef"}
+		}
+	},
+	{$project: {
+		otherIds: {
+			$reduce: {
+				input: "$otherIdsArr",
+				initialValue: "",
+				in: {$concat: ["$$value", " ", "$$this"]}
+				}
+			}
+		}
+	},
+	{$out: "extractOtherIds"}
+],
+{allowDiskUse: true}
+)
+
+db.psref.aggregate([
+	{$match: {$expr: {$gt: ['$activated', '$deactivated']}}},
+	{$lookup: {
+		from:"ps",
+		localField:"nationalId",
+		foreignField:"nationalId",
+		as:"thisPs"
+		}
+	},
+	{$unwind: "$thisPs"},
+        {$unwind: {path: "$thisPs.professions", preserveNullAndEmptyArrays: true}},
+	{$unwind: {path: "$thisPs.professions.expertises", preserveNullAndEmptyArrays: true}},
+	{$unwind: {path: "$thisPs.professions.workSituations", preserveNullAndEmptyArrays: true}},
+	{$unwind: {path: "$thisPs.professions.workSituations.structures", preserveNullAndEmptyArrays: true}},
+	{$lookup: {
+		from:"structure",
+		localField:"thisPs.professions.workSituations.structures.structureId",
+		foreignField:"structureTechnicalId",
+		as:"thisStructure"
+		}
+	},
+	{$unwind: {path: "$thisStructure", preserveNullAndEmptyArrays: true}},
+	{$lookup: {
+		from:"extractOtherIds",
+		localField:"nationalId",
+		foreignField:"_id",
+		as:"thisOtherIds"
+		}
+	},
+	{$unwind: {path: "$thisOtherIds", preserveNullAndEmptyArrays: true}},
+	{$project: {
+		_id: 0,
+		idType: "$thisPs.idType",
+		id: "$thisPs.id",
+		nationalId: "$nationalIdRef",
+		lastName: "$thisPs.lastName",
+		firstName: "$thisPs.firstName",
+		dateOfBirth: "$thisPs.dateOfBirth",
+		birthAddressCode: "$thisPs.birthAddressCode",
+		birthCountryCode: "$thisPs.birthCountryCode",
+		birthAddress: "$thisPs.birthAddress",
+		genderCode: "$thisPs.genderCode",
+		phone: "$thisPs.phone",
+		email: "$thisPs.email",
+		salutationCode: "$thisPs.salutationCode",
+		profession_code: "$thisPs.professions.code",
+		profession_categoryCode: "$thisPs.professions.categoryCode",
+		profession_salutationCode: "$thisPs.professions.salutationCode",
+		profession_lastName: "$thisPs.professions.lastName",
+		profession_firstName: "$thisPs.professions.firstName",
+		profession_expertise_categoryCode: "$thisPs.professions.expertises.categoryCode",
+		profession_expertise_code: "$thisPs.professions.expertises.code",
+		profession_situation_modeCode: "$thisPs.professions.workSituations.modeCode",
+		profession_situation_activitySectorCode: "$thisPs.professions.workSituations.activitySectorCode",
+		profession_situation_pharmacistTableSectionCode: "$thisPs.professions.workSituations.pharmacistTableSectionCode",
+		profession_situation_roleCode: "$thisPs.professions.workSituations.roleCode",
+		structure_siteSIRET: "$thisStructure.siteSIRET",
+		structure_siteSIREN: "$thisStructure.siteSIREN",
+		structure_siteFINESS: "$thisStructure.siteFINESS",
+		structure_structure_legalEstablishmentFINESS: "$thisStructure.legalEstablishmentFINESS",
+		structure_structureTechnicalId: "$thisStructure.structureTechnicalId",
+		structure_legalCommercialName: "$thisStructure.legalCommercialName",
+		structure_publicCommercialName: "$thisStructure.publicCommercialName",
+		structure_recipientAdditionalInfo: "$thisStructure.recipientAdditionalInfo",
+		structure_geoLocationAdditionalInfo: "$thisStructure.geoLocationAdditionalInfo",
+		structure_streetNumber: "$thisStructure.streetNumber",
+		structure_streetNumberRepetitionIndex: "$thisStructure.streetNumberRepetitionIndex",
+		structure_streetCategoryCode: "$thisStructure.streetCategoryCode",
+		structure_streetLabel: "$thisStructure.streetLabel",
+		structure_distributionMention: "$thisStructure.distributionMention",
+		structure_cedexOffice: "$thisStructure.cedexOffice",
+		structure_postalCode: "$thisStructure.postalCode",
+		structure_communeCode: "$thisStructure.communeCode",
+		structure_countryCode: "$thisStructure.countryCode",
+		structure_phone: "$thisStructure.phone",
+		structure_phone2: "$thisStructure.phone2",
+		structure_fax: "$thisStructure.fax",
+		structure_email: "$thisStructure.email",
+		structure_departmentCode: "$thisStructure.departmentCode",
+		structure_oldStructureId: "$thisStructure.oldStructureId",
+		structure_registrationAuthority: "$thisStructure.registrationAuthority",
+		otherIds: "$thisOtherIds.otherIds"
+		}
+	},
+	{$out :"extractRass"}
+])

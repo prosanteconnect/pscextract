@@ -4,9 +4,7 @@ import fr.ans.psc.pscextract.model.PsLine;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -26,8 +24,8 @@ public class ExtractionService {
      */
     private static final Logger log = LoggerFactory.getLogger(ExtractionService.class);
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
+    @Value("${mongodb.name}")
+    private String mongodbName;
 
     @Value("${mongodb.outCollection}")
     private String outCollection;
@@ -58,8 +56,8 @@ public class ExtractionService {
         String fields = String.join(",", fieldsList);
 
         String cmd = "mongoexport " +
-                "--db=" + mongoTemplate.getDb().getName() + " " +
-                "--collection=" + outCollection + " " +
+                "--db=" + mongodbName + " " +
+                "--collection=extractRass " +
                 "--host=" + mongoAddr + " " +
                 "--fields=" + fields + " " +
                 "--out=" + FileNamesUtil.getFilePath(filesDirectory, extractName) + " " +

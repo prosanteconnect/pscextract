@@ -59,8 +59,7 @@ public class ExtractionController {
     }
 
     @PostMapping(value = "/aggregate")
-    public DeferredResult<ResponseEntity<String>> aggregate() {
-        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
+    public String aggregate() {
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 aggregationService.aggregate();
@@ -68,9 +67,8 @@ public class ExtractionController {
                 log.error(e.getMessage());
             }
             log.info("Aggregation done.");
-            output.setResult(ResponseEntity.ok("Aggregation done."));
         });
-        return output;
+        return "Aggregation done";
     }
 
     @PostMapping(value = "/extract")
@@ -108,6 +106,7 @@ public class ExtractionController {
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + transformationService.zipName());
         transformationService.zipFile(response.getOutputStream());
+        log.info("Download done");
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)

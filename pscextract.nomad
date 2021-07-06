@@ -29,7 +29,7 @@ job "pscextract" {
 
     task "pscextract" {
       env {
-        JAVA_TOOL_OPTIONS="-Dspring.config.location=/secrets/application.properties"
+        JAVA_TOOL_OPTIONS="-Xms1500m -Xmx1500m -XX:+UseG1GC -Dspring.config.location=/secrets/application.properties"
       }
       driver = "docker"
       config {
@@ -45,15 +45,13 @@ job "pscextract" {
 server.servlet.context-path=/pscextract/v1
 mongodb.addr={{ range service "psc-mongodb" }}{{ .Address }}:{{ .Port }}{{ end }}
 mongodb.name=mongodb
-mongodb.outCollection=extractRass
-mongodb.inCollection=psref
 files.directory=/app/extract-repo
 extract.name=PSC-extract
 EOF
         destination = "secrets/application.properties"
       }
       resources {
-        cpu = 1000
+        cpu = 2000
         memory = 2048
       }
       service {

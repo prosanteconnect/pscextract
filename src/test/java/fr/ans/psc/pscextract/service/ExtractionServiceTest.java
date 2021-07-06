@@ -21,7 +21,7 @@ class ExtractionServiceTest {
 
     @Test
     @Disabled
-    void aggregateTest() {
+    void aggregateTest() throws Exception {
         as.aggregate();
     }
 
