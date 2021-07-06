@@ -1,7 +1,7 @@
 package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.pscextract.service.AggregationService;
-import fr.ans.psc.pscextract.service.ExtractionService;
+import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 public class ExtractionController {
 
     @Autowired
-    ExtractionService extractionService;
+    ExportService exportService;
 
     @Autowired
     AggregationService aggregationService;
@@ -59,8 +59,7 @@ public class ExtractionController {
     }
 
     @PostMapping(value = "/aggregate")
-    public DeferredResult<ResponseEntity<String>> aggregate() {
-        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
+    public String aggregate() {
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 aggregationService.aggregate();
@@ -68,24 +67,20 @@ public class ExtractionController {
                 log.error(e.getMessage());
             }
             log.info("Aggregation done.");
-            output.setResult(ResponseEntity.ok("Aggregation done."));
         });
-        return output;
+        return "Aggregation done";
     }
 
-    @PostMapping(value = "/extract")
-    public DeferredResult<ResponseEntity<String>> extract() {
-        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
+    @PostMapping(value = "/export")
+    public String export() {
         ForkJoinPool.commonPool().submit(() -> {
             try {
-                extractionService.extract();
+                exportService.export();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
-            log.info("Extraction done.");
-            output.setResult(ResponseEntity.ok("Extraction done."));
         });
-        return output;
+        return "Exporting ...";
     }
 
     @PostMapping(value = "/transform")
@@ -108,6 +103,7 @@ public class ExtractionController {
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + transformationService.zipName());
         transformationService.zipFile(response.getOutputStream());
+        log.info("Download done");
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
