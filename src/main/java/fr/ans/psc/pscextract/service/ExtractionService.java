@@ -27,9 +27,6 @@ public class ExtractionService {
     @Value("${mongodb.name}")
     private String mongodbName;
 
-    @Value("${mongodb.outCollection}")
-    private String outCollection;
-
     @Value("${mongodb.addr}")
     private String mongoAddr;
 
@@ -65,7 +62,7 @@ public class ExtractionService {
                 "--forceTableScan";
 
         log.info("running command : {}", cmd);
-        log.info("exporting schema {}", outCollection);
+        log.info("exporting schema {}", "extractRass");
 
         Runtime.getRuntime().exec(cmd);
 

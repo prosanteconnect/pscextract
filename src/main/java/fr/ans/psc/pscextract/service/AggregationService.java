@@ -45,14 +45,17 @@ public class AggregationService {
         // transform Dos/Windows end of lines (CRLF) to Unix end of lines (LF).
         Runtime.getRuntime().exec("dos2unix /app/resources/aggregate.mongo");
 
-        String[] cmd = {
+        String cmd = "mongo --host=" + mongoAddr + " " + mongodbName + " < /app/resources/aggregate.mongo";
+
+        String[] cmdArr = {
                 "/bin/sh",
                 "-c",
-                "mongo --host=" + mongoAddr + " " + mongodbName + " < /app/resources/aggregate.mongo"
+                cmd
         };
-        log.info("running command: {}", Arrays.stream(cmd));
 
-        Process p = Runtime.getRuntime().exec(cmd);
+        log.info("running command: {}", Arrays.stream(cmdArr));
+
+        Process p = Runtime.getRuntime().exec(cmdArr);
         StringBuilder infoBuilder = new StringBuilder();
         StringBuilder errorBuilder = new StringBuilder();
         try (Reader infoReader = new BufferedReader(new InputStreamReader
