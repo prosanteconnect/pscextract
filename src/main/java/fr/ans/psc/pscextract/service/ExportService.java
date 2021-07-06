@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
  * The type Extraction service.
  */
 @Service
-public class ExtractionService {
+public class ExportService {
 
     /**
      * logger.
      */
-    private static final Logger log = LoggerFactory.getLogger(ExtractionService.class);
+    private static final Logger log = LoggerFactory.getLogger(ExportService.class);
 
     @Value("${mongodb.name}")
     private String mongodbName;
@@ -39,7 +39,7 @@ public class ExtractionService {
     /**
      * Instantiates a new Extraction service.
      */
-    private ExtractionService() {
+    private ExportService() {
     }
 
     /**
@@ -47,7 +47,7 @@ public class ExtractionService {
      *
      * @throws IOException the io exception
      */
-    public void extract() throws IOException {
+    public void export() throws IOException {
         List<String> fieldsList = Arrays.stream(PsLine.class.getDeclaredFields()).map(Field::getName).collect(Collectors.toList());
 
         String fields = String.join(",", fieldsList);

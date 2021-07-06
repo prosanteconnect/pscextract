@@ -70,7 +70,7 @@ public class TransformationService {
         FileWriter f = new FileWriter(FileNamesUtil.getFilePath(
                 filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime)), true);
         BufferedWriter b = new BufferedWriter(f);
-        PrintWriter p = new PrintWriter(b);
+        PrintWriter p = new PrintWriter(b, true);
 
         // ObjectRowProcessor converts the parsed values and gives you the resulting row.
         ObjectRowProcessor rowProcessor = new ObjectRowProcessor() {

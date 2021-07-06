@@ -8,10 +8,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.IOException;
 
 @SpringBootTest
-class ExtractionServiceTest {
+class ExportServiceTest {
 
     @Autowired
-    ExtractionService es;
+    ExportService es;
 
     @Autowired
     AggregationService as;
@@ -28,7 +28,7 @@ class ExtractionServiceTest {
     @Test
     @Disabled
     void extractTest() throws IOException {
-        es.extract();
+        es.export();
     }
 
     @Test

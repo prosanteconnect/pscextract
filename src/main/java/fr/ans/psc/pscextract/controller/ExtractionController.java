@@ -1,7 +1,7 @@
 package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.pscextract.service.AggregationService;
-import fr.ans.psc.pscextract.service.ExtractionService;
+import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 public class ExtractionController {
 
     @Autowired
-    ExtractionService extractionService;
+    ExportService exportService;
 
     @Autowired
     AggregationService aggregationService;
@@ -71,17 +71,16 @@ public class ExtractionController {
         return "Aggregation done";
     }
 
-    @PostMapping(value = "/extract")
-    public DeferredResult<ResponseEntity<String>> extract() {
+    @PostMapping(value = "/export")
+    public DeferredResult<ResponseEntity<String>> export() {
         DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
         ForkJoinPool.commonPool().submit(() -> {
             try {
-                extractionService.extract();
+                exportService.export();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
-            log.info("Extraction done.");
-            output.setResult(ResponseEntity.ok("Extraction done."));
+            output.setResult(ResponseEntity.ok("Export done."));
         });
         return output;
     }
