@@ -1,5 +1,6 @@
 job "pscextract" {
-  datacenters = ["dc1"]
+  datacenters = [
+    "dc1"]
   type = "service"
 
   group "pscextract-services" {
@@ -12,13 +13,13 @@ job "pscextract" {
     }
 
     update {
-      max_parallel      = 1
-      canary            = 1
-      min_healthy_time  = "30s"
+      max_parallel = 1
+      canary = 1
+      min_healthy_time = "30s"
       progress_deadline = "5m"
-      healthy_deadline  = "2m"
-      auto_revert       = true
-      auto_promote      = true
+      healthy_deadline = "2m"
+      auto_revert = true
+      auto_promote = true
     }
 
     network {
@@ -29,7 +30,7 @@ job "pscextract" {
 
     task "pscextract" {
       env {
-        JAVA_TOOL_OPTIONS="-Dspring.config.location=/secrets/application.properties"
+        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties"
       }
       driver = "docker"
       config {
@@ -38,13 +39,17 @@ job "pscextract" {
           "name=pscextract-data,io_priority=high,size=3,repl=2:/app/extract-repo"
         ]
         volume_driver = "pxd"
-        ports = ["http"]
+        ports = [
+          "http"]
       }
       template {
         data = <<EOF
 server.servlet.context-path=/pscextract/v1
 mongodb.addr={{ range service "psc-mongodb" }}{{ .Address }}:{{ .Port }}{{ end }}
 mongodb.name=mongodb
+mongodb.username={{ with secret "psc-ecosystem/mongodb }}{{ .Data.data.root_user}}{{ end}}"
+mongodb.password={{ with secret "psc-ecosystem/mongodb }}{{ .Data.data.root_pass}}{{ end}}"
+mongodb.admin.database=admin
 mongodb.outCollection=extractRass
 mongodb.inCollection=psref
 files.directory=/app/extract-repo
@@ -58,7 +63,8 @@ EOF
       }
       service {
         name = "$\u007BNOMAD_JOB_NAME\u007D"
-        tags = ["urlprefix-${public_hostname}/pscextract/v1/"]
+        tags = [
+          "urlprefix-${public_hostname}/pscextract/v1/"]
         port = "http"
         check {
           type = "http"
@@ -68,3 +74,6 @@ EOF
           timeout = "2s"
         }
       }
+    }
+  }
+}

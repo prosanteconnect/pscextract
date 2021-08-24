@@ -30,6 +30,15 @@ public class AggregationService {
     @Value("${mongodb.addr}")
     private String mongoAddr;
 
+    @Value("${mongodb.username")
+    private String mongoUserName;
+
+    @Value("${mongodb.password")
+    private String mongoPassword;
+
+    @Value("${mongodb.admin.database")
+    private String mongoAdminDatabase;
+
     /**
      * Instantiates a new Extraction service.
      */
@@ -45,7 +54,8 @@ public class AggregationService {
         // transform Dos/Windows end of lines (CRLF) to Unix end of lines (LF).
         Runtime.getRuntime().exec("dos2unix /app/resources/aggregate.mongo");
 
-        String cmd = "mongo --host=" + mongoAddr + " " + mongodbName + " < /app/resources/aggregate.mongo";
+        String cmd = "mongo --host=" + mongoAddr + " " + mongodbName + " -u " + mongoUserName + " -p " + mongoPassword
+                + " --authenticationDatabase " + mongoAdminDatabase + " < /app/resources/aggregate.mongo";
 
         String[] cmdArr = {
                 "/bin/sh",
@@ -59,7 +69,8 @@ public class AggregationService {
         StringBuilder infoBuilder = new StringBuilder();
         StringBuilder errorBuilder = new StringBuilder();
         try (Reader infoReader = new BufferedReader(new InputStreamReader
-                (p.getInputStream(), Charset.forName(StandardCharsets.UTF_8.name()))); Reader errorReader = new BufferedReader(new InputStreamReader
+                (p.getInputStream(), Charset.forName(StandardCharsets.UTF_8.name())));
+             Reader errorReader = new BufferedReader(new InputStreamReader
                 (p.getErrorStream(), Charset.forName(StandardCharsets.UTF_8.name())))) {
             int c;
             while ((c = infoReader.read()) != -1) {
