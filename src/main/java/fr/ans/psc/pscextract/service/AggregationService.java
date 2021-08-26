@@ -27,8 +27,11 @@ public class AggregationService {
     @Value("${mongodb.name}")
     private String mongodbName;
 
-    @Value("${mongodb.addr}")
-    private String mongoAddr;
+    @Value("${mongodb.host")
+    private String mongoHost;
+
+    @Value("${mongodb.port}")
+    private String mongoPort;
 
     @Value("${mongodb.username")
     private String mongoUserName;
@@ -54,8 +57,8 @@ public class AggregationService {
         // transform Dos/Windows end of lines (CRLF) to Unix end of lines (LF).
         Runtime.getRuntime().exec("dos2unix /app/resources/aggregate.mongo");
 
-        String cmd = "mongo --host=" + mongoAddr + " " + mongodbName + " -u " + mongoUserName + " -p " + mongoPassword
-                + " --authenticationDatabase " + mongoAdminDatabase + " < /app/resources/aggregate.mongo";
+        String cmd = "mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username " + mongoUserName + " --password " + mongoPassword
+                + " --authenticationDatabase " + mongoAdminDatabase + " " + mongodbName + " < /app/resources/aggregate.mongo";
 
         String[] cmdArr = {
                 "/bin/sh",

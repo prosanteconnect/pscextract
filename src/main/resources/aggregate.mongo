@@ -31,7 +31,7 @@ db.psref.aggregate([
 		}
 	},
 	{$unwind: "$thisPs"},
-        {$unwind: {path: "$thisPs.professions", preserveNullAndEmptyArrays: true}},
+    {$unwind: {path: "$thisPs.professions", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path: "$thisPs.professions.expertises", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path: "$thisPs.professions.workSituations", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path: "$thisPs.professions.workSituations.structures", preserveNullAndEmptyArrays: true}},
