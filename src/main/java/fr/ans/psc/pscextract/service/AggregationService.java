@@ -27,19 +27,19 @@ public class AggregationService {
     @Value("${mongodb.name}")
     private String mongodbName;
 
-    @Value("${mongodb.host")
+    @Value("${mongodb.host}")
     private String mongoHost;
 
     @Value("${mongodb.port}")
     private String mongoPort;
 
-    @Value("${mongodb.username")
+    @Value("${mongodb.username}")
     private String mongoUserName;
 
-    @Value("${mongodb.password")
+    @Value("${mongodb.password}")
     private String mongoPassword;
 
-    @Value("${mongodb.admin.database")
+    @Value("${mongodb.admin.database}")
     private String mongoAdminDatabase;
 
     /**
