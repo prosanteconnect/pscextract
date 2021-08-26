@@ -34,24 +34,24 @@ job "pscextract" {
       }
       driver = "docker"
       config {
-        image = "${artifact.image}:${artifact.tag}"
+        image = "${image}:${tag}"
         volumes = [
-          "name=pscextract-data,io_priority=high,size=3,repl=2:/app/extract-repo"
+          "name=pscextract-data,io_priority=high,size=10,repl=3:/app/extract-repo"
         ]
         volume_driver = "pxd"
         ports = [
-          "http"]
+          "http"
+        ]
       }
       template {
         data = <<EOF
 server.servlet.context-path=/pscextract/v1
-mongodb.addr={{ range service "psc-mongodb" }}{{ .Address }}:{{ .Port }}{{ end }}
+mongodb.host={{ range service "psc-mongodb" }}{{ .Address }}{{ end }}
+mongodb.port={{ range service "psc-mongodb" }}{{ .Port }}{{ end }}
 mongodb.name=mongodb
 mongodb.username={{ with secret "psc-ecosystem/mongodb }}{{ .Data.data.root_user}}{{ end}}"
 mongodb.password={{ with secret "psc-ecosystem/mongodb }}{{ .Data.data.root_pass}}{{ end}}"
 mongodb.admin.database=admin
-mongodb.outCollection=extractRass
-mongodb.inCollection=psref
 files.directory=/app/extract-repo
 extract.name=PSC-extract
 EOF
@@ -64,7 +64,8 @@ EOF
       service {
         name = "$\u007BNOMAD_JOB_NAME\u007D"
         tags = [
-          "urlprefix-${public_hostname}/pscextract/v1/"]
+          "urlprefix-${public_hostname}/pscextract/v1/"
+        ]
         port = "http"
         check {
           type = "http"

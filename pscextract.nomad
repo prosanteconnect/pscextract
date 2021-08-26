@@ -43,7 +43,8 @@ job "pscextract" {
       template {
         data = <<EOF
 server.servlet.context-path=/pscextract/v1
-mongodb.addr={{ range service "psc-mongodb" }}{{ .Address }}:{{ .Port }}{{ end }}
+mongodb.host={{ range service "psc-mongodb" }}{{ .Address }}{{ end }}
+mongodb.port={{ range service "psc-mongodb" }}{{ .Port }}{{ end }}
 mongodb.name=mongodb
 files.directory=/app/extract-repo
 extract.name=PSC-extract

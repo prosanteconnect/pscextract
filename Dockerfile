@@ -1,10 +1,12 @@
 FROM openjdk:11-slim-buster
 
 RUN apt-get update
-RUN apt-get install -y mongo-tools wget gnupg2 dos2unix
+RUN apt-get install -y wget gnupg dos2unix
 
-RUN echo "deb [ trusted=yes ] https://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
+
+RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
 
 RUN apt-get update
 
-RUN apt-get install -y mongodb-org-shell
+RUN apt-get install -y mongodb-mongosh

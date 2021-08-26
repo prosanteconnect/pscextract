@@ -27,8 +27,11 @@ public class ExportService {
     @Value("${mongodb.name}")
     private String mongodbName;
 
-    @Value("${mongodb.addr}")
-    private String mongoAddr;
+    @Value("${mongodb.host}")
+    private String mongoHost;
+
+    @Value("${mongodb.port}")
+    private String mongoPort;
 
     @Value("${files.directory}")
     private String filesDirectory;
@@ -55,7 +58,8 @@ public class ExportService {
         String cmd = "mongoexport " +
                 "--db=" + mongodbName + " " +
                 "--collection=extractRass " +
-                "--host=" + mongoAddr + " " +
+                "--host=" + mongoHost + " " +
+                "--port=" + mongoPort + " " +
                 "--fields=" + fields + " " +
                 "--out=" + FileNamesUtil.getFilePath(filesDirectory, extractName) + " " +
                 "--type=csv " +
