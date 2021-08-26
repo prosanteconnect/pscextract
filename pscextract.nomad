@@ -2,6 +2,11 @@ job "pscextract" {
   datacenters = ["dc1"]
   type = "service"
 
+  vault {
+    policies = ["psc-ecosystem"]
+    change_mode = "restart"
+  }
+
   group "pscextract-services" {
     count = "1"
     restart {
