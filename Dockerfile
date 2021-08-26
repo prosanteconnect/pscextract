@@ -1,7 +1,7 @@
 FROM openjdk:11-slim-buster
 
 RUN apt-get update
-RUN apt-get install -y wget gnupg dos2unix
+RUN apt-get install -y mongo-tools wget gnupg dos2unix
 
 RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
 
