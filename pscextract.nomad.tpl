@@ -1,6 +1,5 @@
 job "pscextract" {
-  datacenters = [
-    "dc1"]
+  datacenters = ["dc1"]
   type = "service"
 
   group "pscextract-services" {
