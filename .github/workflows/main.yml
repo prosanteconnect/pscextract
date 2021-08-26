@@ -47,12 +47,16 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: prosanteconnect/pscextract:latest
+          tags: prosanteconnect/pscextract-base:latest
           
       # Build an image tarball with Maven
       - name: Build with Maven
         run: mvn -B compile jib:buildTar --file pom.xml
       
       # This builds and saves your image to target/jib-image.tar, which you can load into docker with:
-      - name: Build and push with Docker
+      - name: Build with Docker
         run: docker load --input target/jib-image.tar
+        
+      # Push pscextract
+      - name: Push with Docker
+        run: docker push prosanteconnect/pscextract
