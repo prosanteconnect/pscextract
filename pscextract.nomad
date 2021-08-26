@@ -12,13 +12,13 @@ job "pscextract" {
     }
 
     update {
-      max_parallel      = 1
-      canary            = 1
-      min_healthy_time  = "30s"
+      max_parallel = 1
+      canary = 1
+      min_healthy_time = "30s"
       progress_deadline = "5m"
-      healthy_deadline  = "2m"
-      auto_revert       = true
-      auto_promote      = true
+      healthy_deadline = "2m"
+      auto_revert = true
+      auto_promote = true
     }
 
     network {
@@ -29,7 +29,7 @@ job "pscextract" {
 
     task "pscextract" {
       env {
-        JAVA_TOOL_OPTIONS="-Xms1500m -Xmx1500m -XX:+UseG1GC -Dspring.config.location=/secrets/application.properties"
+        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties"
       }
       driver = "docker"
       config {
@@ -46,6 +46,9 @@ server.servlet.context-path=/pscextract/v1
 mongodb.host={{ range service "psc-mongodb" }}{{ .Address }}{{ end }}
 mongodb.port={{ range service "psc-mongodb" }}{{ .Port }}{{ end }}
 mongodb.name=mongodb
+mongodb.username={{ with secret "psc-ecosystem/mongodb }}{{ .Data.data.root_user}}{{ end}}"
+mongodb.password={{ with secret "psc-ecosystem/mongodb }}{{ .Data.data.root_pass}}{{ end}}"
+mongodb.admin.database=admin
 files.directory=/app/extract-repo
 extract.name=PSC-extract
 EOF

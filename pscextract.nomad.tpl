@@ -38,9 +38,7 @@ job "pscextract" {
           "name=pscextract-data,io_priority=high,size=10,repl=3:/app/extract-repo"
         ]
         volume_driver = "pxd"
-        ports = [
-          "http"
-        ]
+        ports = ["http"]
       }
       template {
         data = <<EOF
@@ -62,9 +60,7 @@ EOF
       }
       service {
         name = "$\u007BNOMAD_JOB_NAME\u007D"
-        tags = [
-          "urlprefix-${public_hostname}/pscextract/v1/"
-        ]
+        tags = ["urlprefix-${public_hostname}/pscextract/v1/"]
         port = "http"
         check {
           type = "http"
