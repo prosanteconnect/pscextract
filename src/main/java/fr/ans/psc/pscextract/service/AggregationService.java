@@ -57,8 +57,8 @@ public class AggregationService {
         // transform Dos/Windows end of lines (CRLF) to Unix end of lines (LF).
         Runtime.getRuntime().exec("dos2unix /app/resources/aggregate.mongo");
 
-        String cmd = "mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username " + mongoUserName + " --password " + mongoPassword
-                + " --authenticationDatabase " + mongoAdminDatabase + " " + mongodbName + " < /app/resources/aggregate.mongo";
+        String cmd = "mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username=" + mongoUserName + " --password=" + mongoPassword
+                + " --authenticationDatabase=" + mongoAdminDatabase + " " + mongodbName + " < /app/resources/aggregate.mongo";
 
         String[] cmdArr = {
                 "/bin/sh",
@@ -66,7 +66,7 @@ public class AggregationService {
                 cmd
         };
 
-        log.info("running command: {}", Arrays.stream(cmdArr));
+        log.info("running command: {}", cmd);
 
         Process p = Runtime.getRuntime().exec(cmdArr);
         StringBuilder infoBuilder = new StringBuilder();

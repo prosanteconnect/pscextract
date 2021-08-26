@@ -68,7 +68,7 @@ public class ExtractionController {
             }
             log.info("Aggregation done.");
         });
-        return "Aggregation done";
+        return "Aggregating...";
     }
 
     @PostMapping(value = "/export")
@@ -80,7 +80,7 @@ public class ExtractionController {
                 log.error(e.getMessage());
             }
         });
-        return "Exporting ...";
+        return "Exporting...";
     }
 
     @PostMapping(value = "/transform")
