@@ -33,6 +33,15 @@ public class ExportService {
     @Value("${mongodb.port}")
     private String mongoPort;
 
+    @Value("${mongodb.username}")
+    private String mongoUserName;
+
+    @Value("${mongodb.password}")
+    private String mongoPassword;
+
+    @Value("${mongodb.admin.database}")
+    private String mongoAdminDatabase;
+
     @Value("${files.directory}")
     private String filesDirectory;
 
@@ -57,6 +66,9 @@ public class ExportService {
 
         String cmd = "mongoexport " +
                 "--db=" + mongodbName + " " +
+                "--username=" + mongoUserName + " " +
+                "--password=" + mongoPassword + " " +
+                "--authenticationDatabase=" + mongoAdminDatabase + " " +
                 "--collection=extractRass " +
                 "--host=" + mongoHost + " " +
                 "--port=" + mongoPort + " " +
