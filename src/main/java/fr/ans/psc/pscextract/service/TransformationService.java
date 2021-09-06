@@ -61,7 +61,7 @@ public class TransformationService {
                 "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code Département (structure)|" +
-                "Ancien identifiant de la structure|Autorité d'enregistrement|Autres Ids|";
+                "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|";
         setExtractionTime();
         Files.write(Paths.get(FileNamesUtil.getFilePath(
                 filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime))), Collections.singleton(header),
