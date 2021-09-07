@@ -30,10 +30,10 @@ job "pscextract" {
     }
 
     task "pscextract" {
+      driver = "docker"
       env {
         JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties"
       }
-      driver = "docker"
       config {
         image = "${image}:${tag}"
         volumes = [
