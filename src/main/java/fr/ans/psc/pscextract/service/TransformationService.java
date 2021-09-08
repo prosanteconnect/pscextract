@@ -35,6 +35,9 @@ public class TransformationService {
     @Value("${extract.name}")
     private String extractName;
 
+    @Value("${extract.test.name}")
+    public String extractTestName;
+
     @Value("${files.directory}")
     private String filesDirectory;
 
@@ -99,10 +102,13 @@ public class TransformationService {
      *
      * @param out the OutputStream
      */
-    public void zipFile(OutputStream out) {
+    public void zipFile(OutputStream out, boolean prod) {
         FileSystemResource resource = new FileSystemResource(
-                FileNamesUtil.getFilePath(filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime)));
+                FileNamesUtil.getFilePath(filesDirectory, prod ?
+                        FileNamesUtil.extractRASSName(extractName, extractTime) :
+                        extractTestName + ".txt"));
         try (ZipOutputStream zippedOut = new ZipOutputStream(out)) {
+            log.info(resource.getFilename());
             ZipEntry e = new ZipEntry(Objects.requireNonNull(resource.getFilename()));
             // Configure the zip entry, the properties of the file
             e.setSize(resource.contentLength());
