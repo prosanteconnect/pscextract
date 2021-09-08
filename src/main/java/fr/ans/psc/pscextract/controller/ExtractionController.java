@@ -3,13 +3,16 @@ package fr.ans.psc.pscextract.controller;
 import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
+import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -38,6 +41,9 @@ public class ExtractionController {
 
     @Value("${files.directory}")
     private String filesDirectory;
+
+    @Value("${extract.test.name}")
+    public String extractTestName;
 
     /**
      * logger.
@@ -102,8 +108,18 @@ public class ExtractionController {
     public void getFile(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + transformationService.zipName());
-        transformationService.zipFile(response.getOutputStream());
+        transformationService.zipFile(response.getOutputStream(), true);
         log.info("Download done");
+        FileNamesUtil.cleanup(filesDirectory, extractTestName);
+    }
+
+    @GetMapping(value="/download/test")
+    public void getDemoExtractFile(HttpServletResponse response) throws IOException {
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition", "attachment; filename=" + extractTestName + ".zip");
+        transformationService.zipFile(response.getOutputStream(), false);
+        log.info("Download demo file done");
+        FileNamesUtil.cleanup(filesDirectory, extractTestName);
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)

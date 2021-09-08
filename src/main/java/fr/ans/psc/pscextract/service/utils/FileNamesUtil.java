@@ -1,9 +1,25 @@
 package fr.ans.psc.pscextract.service.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class FileNamesUtil {
+
+    private static final Logger log = LoggerFactory.getLogger(FileNamesUtil.class);
 
     private FileNamesUtil() {
     }
@@ -23,6 +39,46 @@ public class FileNamesUtil {
         } else {
             return filesDirectory + '/' + fileName;
         }
+    }
+
+    public static void cleanup(String filesDirectory, String exceptFile) throws IOException {
+        log.info("Cleaning files repository, removing all but latest file and demo");
+        File[] fileArray = new File(filesDirectory).listFiles();
+        List<File> listOfFiles = new ArrayList<>();
+        if (fileArray != null) {
+            listOfFiles.addAll(Arrays.asList(fileArray));
+        }
+        listOfFiles.removeIf(file -> file.getName().contains(exceptFile));
+        listOfFiles.sort(FileNamesUtil::compare);
+
+        if (listOfFiles.size() > 0) {
+            listOfFiles.remove(listOfFiles.size() -1);
+        }
+
+        for(File file : listOfFiles) {
+            file.delete();
+        }
+    }
+
+    private static int compare(File f1, File f2) {
+        try {
+            return getDateFromFileName(f1).compareTo(getDateFromFileName(f2));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private static Date getDateFromFileName(File file) throws ParseException {
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMddhhmm");
+
+        String regex = ".*(\\d{12}).*";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher m = pattern.matcher(file.getName());
+        if (m.find()) {
+            return dateFormatter.parse(m.group(1));
+        }
+        return new Date(0);
     }
 
 }
