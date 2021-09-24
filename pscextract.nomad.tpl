@@ -1,5 +1,5 @@
 job "pscextract" {
-  datacenters = ["dc1"]
+  datacenters = ["${datacenter}"]
   type = "service"
 
   vault {
@@ -43,6 +43,13 @@ job "pscextract" {
         ports = ["http"]
       }
       template {
+        destination = local/file.env
+        env = true
+        data = <<EOF
+PUBLIC_HOSTNAME={{ with secret "psc-ecosystem/pscextract" }}{{ .Data.data.public_hostname }}{{ end }}
+EOF
+      }
+      template {
         data = <<EOF
 server.servlet.context-path=/pscextract/v1
 mongodb.host={{ range service "psc-mongodb" }}{{ .Address }}{{ end }}
@@ -63,7 +70,7 @@ EOF
       }
       service {
         name = "$\u007BNOMAD_JOB_NAME\u007D"
-        tags = ["urlprefix-${public_hostname}/pscextract/v1/"]
+        tags = ["urlprefix-$\u007BPUBLIC_HOSTNAME\u007D/pscextract/v1/"]
         port = "http"
         check {
           type = "http"

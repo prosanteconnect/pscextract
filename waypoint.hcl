@@ -25,7 +25,7 @@ app "prosanteconnect/pscextract" {
   deploy {
     use "nomad-jobspec" {
       jobspec = templatefile("${path.app}/pscextract.nomad.tpl", {
-        public_hostname = var.public_hostname
+        datacenter = var.datacenter
         image = var.image
         tag = var.tag
       })
@@ -33,9 +33,9 @@ app "prosanteconnect/pscextract" {
   }
 }
 
-variable "public_hostname" {
+variable "datacenter" {
   type    = string
-  default = "pscextract.psc.api.esante.gouv.fr"
+  default = "production"
 }
 
 variable "image" {
