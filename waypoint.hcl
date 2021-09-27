@@ -17,7 +17,7 @@ app "prosanteconnect/pscextract" {
   build {
     use "docker-pull" {
       image = var.image
-      tag   = var.tag
+      tag   = "latest"
     }
   }
 
@@ -27,7 +27,7 @@ app "prosanteconnect/pscextract" {
       jobspec = templatefile("${path.app}/pscextract.nomad.tpl", {
         datacenter = var.datacenter
         image = var.image
-        tag = var.tag
+        tag = "latest"
       })
     }
   }
