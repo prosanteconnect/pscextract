@@ -43,7 +43,7 @@ job "pscextract" {
         ports = ["http"]
       }
       template {
-        destination = local/file.env
+        destination = "local/file.env"
         env = true
         data = <<EOF
 PUBLIC_HOSTNAME={{ with secret "psc-ecosystem/pscextract" }}{{ .Data.data.public_hostname }}{{ end }}
