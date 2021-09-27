@@ -43,7 +43,3 @@ variable "image" {
   default = "prosanteconnect/pscextract"
 }
 
-variable "tag" {
-  type    = string
-  default = "latest"
-}
