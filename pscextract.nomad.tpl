@@ -60,7 +60,7 @@ mongodb.password={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_pas
 mongodb.admin.database=admin
 files.directory=/app/extract-repo
 extract.name=PSC-extract
-extract.test.name=PSC-extract-demo
+extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule
 EOF
         destination = "secrets/application.properties"
       }
