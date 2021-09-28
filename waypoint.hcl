@@ -35,7 +35,7 @@ app "prosanteconnect/pscextract" {
 
 variable "datacenter" {
   type    = string
-  default = "production"
+  default = "dc1"
 }
 
 variable "image" {
