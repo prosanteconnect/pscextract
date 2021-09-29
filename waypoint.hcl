@@ -8,9 +8,9 @@ runner {
     data_source "git" {
         url = "https://github.com/prosanteconnect/pscextract.git"
         ref = var.datacenter
-        poll {
-          enabled = true
-        }
+    }
+    poll {
+        enabled = true
     }
 }
 
