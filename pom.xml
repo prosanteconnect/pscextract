@@ -76,7 +76,7 @@
 						</tags>
 					</to>
 					<container>
-						<user>root:root</user>
+						<user>daemon:daemon</user>
 						<mainClass>fr.ans.psc.pscextract.PscextractApplication</mainClass>
 						<args>
 							<arg>--server.servlet.context-path=/pscextract/v1</arg>

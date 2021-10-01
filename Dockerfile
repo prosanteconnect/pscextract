@@ -1,16 +1,19 @@
+FROM maven:3-jdk-11 AS build
+COPY settings-docker.xml /usr/share/maven/ref/
+COPY src /usr/src/app/src
+COPY pom.xml /usr/src/app
+RUN mvn -f /usr/src/app/pom.xml -gs /usr/share/maven/ref/settings-docker.xml -Dextract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule clean package
+
 FROM openjdk:11-slim-buster
-
-RUN apt-get update
-RUN apt-get install -y wget gnupg dos2unix
-
-# install mongo-export
-RUN wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-debian10-x86_64-100.5.0.deb
-
-# install mongosh
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add -
-RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
-
-RUN apt-get update
-
-RUN apt-get install -y mongodb-mongosh
-RUN apt-get install -y ./mongodb-database-tools-*-100.5.0.deb
+RUN echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian.org buster main" > /etc/apt/sources.list \
+    && echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian.org buster-updates main" >> /etc/apt/sources.list \
+    && apt update \
+    && apt install -y wget gnupg dos2unix \
+    && wget -qO - http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/www.mongodb.org/static/pgp/server-5.0.asc | apt-key add - \
+    && echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian-repo.mongodb.org buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+RUN apt update
+RUN apt install -y mongodb-database-tools mongodb-mongosh
+COPY --from=build /usr/src/app/target/pscextract-*.jar /usr/app/pscextract.jar
+RUN mkdir -p /app/extract-repo
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/usr/app/pscextract.jar"]

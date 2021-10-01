@@ -104,6 +104,19 @@ public class ExtractionController {
         return output;
     }
 
+    @PostMapping(value = "/generate-extract")
+    public void generateExtract() {
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                aggregationService.aggregate();
+                exportService.export();
+                transformationService.transformCsv();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     @GetMapping(value = "/download")
     public void getFile(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
