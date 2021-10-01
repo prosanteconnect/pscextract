@@ -40,8 +40,6 @@ app "prosanteconnect/pscextract" {
     use "nomad-jobspec" {
       jobspec = templatefile("${path.app}/pscextract.nomad.tpl", {
         datacenter = var.datacenter
-        image = var.image
-        tag = var.tag
       })
     }
   }
