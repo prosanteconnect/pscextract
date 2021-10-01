@@ -61,6 +61,7 @@ mongodb.admin.database=admin
 files.directory=/app/extract-repo
 extract.name=Extraction_Pro_sante_connect
 extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule
+server.servlet.context-path=/pscextract/v1
 EOF
         destination = "secrets/application.properties"
       }
