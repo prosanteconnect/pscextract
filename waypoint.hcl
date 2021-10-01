@@ -25,6 +25,14 @@ app "prosanteconnect/pscextract" {
       }
       dockerfile = "${path.app}/${var.dockerfile_path}"
     }
+    # Uncomment below to use a remote docker registry to push your built images.
+    registry {
+      use "docker" {
+        image = "prosanteconnect/psc-ws-maj"
+        tag   = gitrefpretty()
+        encoded_auth = filebase64("/secrets/dockerAuth.json")
+      }
+    }
   }
 
   # Deploy to Nomad
