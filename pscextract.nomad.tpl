@@ -35,7 +35,7 @@ job "pscextract" {
         JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties"
       }
       config {
-        image = "${artifact:image}:${artifact:tag}"
+        image = "${artifact.image}:${artifact.tag}"
         volumes = [
           "name=pscextract-data,io_priority=high,size=10,repl=3:/app/extract-repo"
         ]
