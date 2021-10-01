@@ -19,9 +19,11 @@ app "prosanteconnect/pscextract" {
   # the Build step is required and specifies how an application image should be built and published. In this case,
   # we use docker-pull, we simply pull an image as is.
   build {
-    use "docker-pull" {
-      image = var.image
-      tag   = var.tag
+    use "docker" {
+      build_args = {
+        "proxy_address" = var.proxy_address
+      }
+      dockerfile = "${path.app}/${var.dockerfile_path}"
     }
   }
 
@@ -42,12 +44,12 @@ variable "datacenter" {
   default = "dc1"
 }
 
-variable "image" {
-  type    = string
-  default = "prosanteconnect/pscextract"
+variable "dockerfile_path" {
+  type = string
+  default = "Dockerfile"
 }
 
-variable "tag" {
+variable "proxy_address" {
   type = string
-  default = "latest"
+  default = "proxy_address"
 }
