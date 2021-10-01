@@ -28,7 +28,7 @@ app "prosanteconnect/pscextract" {
     # Uncomment below to use a remote docker registry to push your built images.
     registry {
       use "docker" {
-        image = "prosanteconnect/psc-ws-maj"
+        image = "${var.registry_path}/psc-ws-maj"
         tag   = gitrefpretty()
         encoded_auth = filebase64("/secrets/dockerAuth.json")
       }
@@ -60,4 +60,9 @@ variable "dockerfile_path" {
 variable "proxy_address" {
   type = string
   default = "proxy_address"
+}
+
+variable "registry_path" {
+  type = string
+  default = "registry.repo.proxy-dev-forge.asip.hst.fluxus.net/prosanteconnect"
 }
