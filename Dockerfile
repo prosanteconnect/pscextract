@@ -2,7 +2,7 @@ FROM maven:3-jdk-11 AS build
 COPY settings-docker.xml /usr/share/maven/ref/
 COPY src /usr/src/app/src
 COPY pom.xml /usr/src/app
-RUN mvn -f /usr/src/app/pom.xml -gs /usr/share/maven/ref/settings-docker.xml -Dextract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule clean package
+RUN mvn -f /usr/src/app/pom.xml -gs /usr/share/maven/ref/settings-docker.xml -Dextract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule -DskipTests clean package
 
 FROM openjdk:11-slim-buster
 RUN echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian.org buster main" > /etc/apt/sources.list \
