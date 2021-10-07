@@ -111,6 +111,7 @@ public class ExtractionController {
                 aggregationService.aggregate();
                 exportService.export();
                 transformationService.transformCsv();
+                FileNamesUtil.cleanup(filesDirectory, extractTestName);
             } catch (IOException e) {
                 e.printStackTrace();
             }
