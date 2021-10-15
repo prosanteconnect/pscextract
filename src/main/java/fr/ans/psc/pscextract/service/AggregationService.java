@@ -52,20 +52,20 @@ public class AggregationService {
     /**
      * Aggregate.
      */
-    public void aggregate() throws IOException {
+    public void aggregate() throws IOException, InterruptedException {
         log.info("aggregating ...");
-        String cmdSafe = "mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username=" + mongoUserName + " --password=***"
+        String cmdSafe = "/usr/bin/mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username=" + mongoUserName + " --password=***"
                 + " --authenticationDatabase=" + mongoAdminDatabase + " " + mongodbName + " < /app/resources/aggregate.mongo";
         log.info("running command: {}", cmdSafe);
 
         // transform Dos/Windows end of lines (CRLF) to Unix end of lines (LF).
         Process dos2Unix = Runtime.getRuntime().exec("dos2unix /app/resources/aggregate.mongo");
-        if (dos2Unix.exitValue() != 0) {
+        if (dos2Unix.waitFor() != 0) {
             log.error("Dos2Unix failed : code retour = {}", dos2Unix.exitValue());
             throw new RuntimeException("Dos2Unix failed");
         }
 
-        String cmd = "mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username=" + mongoUserName + " --password=" + mongoPassword
+        String cmd = "/usr/bin/mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username=" + mongoUserName + " --password=" + mongoPassword
                 + " --authenticationDatabase=" + mongoAdminDatabase + " " + mongodbName + " < /app/resources/aggregate.mongo";
 
         String[] cmdArr = {
@@ -74,8 +74,10 @@ public class AggregationService {
                 cmd
         };
 
+
+        // TO DO : create custom Exception to handle  process failures
         Process p = Runtime.getRuntime().exec(cmdArr);
-        if (p.exitValue() == 0) {
+        if (p.waitFor() == 0) {
             log.info("finished aggregation");
         } else {
             StringBuilder infoBuilder = new StringBuilder();
