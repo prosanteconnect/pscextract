@@ -29,6 +29,12 @@ job "pscextract" {
       }
     }
 
+    # install only on "data" nodes
+    constraint {
+      attribute = "${node.class}"
+      value     = "data"
+    }
+
     task "pscextract" {
       driver = "docker"
       env {
