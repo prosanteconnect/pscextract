@@ -113,8 +113,8 @@ public class ExtractionController {
                 exportService.export();
                 transformationService.transformCsv();
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException | InterruptedException e) {
+                log.error("Exception raised :", e);
             }
         });
     }
