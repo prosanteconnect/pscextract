@@ -84,9 +84,9 @@ public class AggregationService {
                 errorBuilder.append((char) c);
             }
         }
-        log.debug("inputstream : {}", infoBuilder);
-        log.debug("errorstream : {}", errorBuilder);
-        log.debug("exit value : {}", p.exitValue());
+        log.info("inputstream : {}", infoBuilder);
+        log.info("errorstream : {}", errorBuilder);
+        log.info("exit value : {}", p.exitValue());
         log.info("finished aggregation");
     }
 
