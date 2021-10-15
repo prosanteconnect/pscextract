@@ -70,7 +70,7 @@ public class ExtractionController {
             try {
                 aggregationService.aggregate();
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("Error during aggregation", e);
             }
             log.info("Aggregation done.");
         });
@@ -83,7 +83,7 @@ public class ExtractionController {
             try {
                 exportService.export();
             } catch (IOException e) {
-                log.error(e.getMessage());
+                log.error("Error during export", e);
             }
         });
         return "Exporting...";
@@ -96,6 +96,7 @@ public class ExtractionController {
             try {
                 transformationService.transformCsv();
             } catch (IOException e) {
+                log.error("Error during transformation", e);
                 log.error(e.getMessage());
             }
             log.info("Transformation done.");
@@ -112,8 +113,8 @@ public class ExtractionController {
                 exportService.export();
                 transformationService.transformCsv();
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException | InterruptedException e) {
+                log.error("Exception raised :", e);
             }
         });
     }
