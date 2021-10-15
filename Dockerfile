@@ -16,6 +16,6 @@ RUN apt install -y mongodb-database-tools mongodb-mongosh
 COPY --from=build /usr/src/app/target/pscextract-*.jar /usr/app/pscextract.jar
 RUN mkdir -p /app/extract-repo
 RUN chown -R daemon: /app/extract-repo
-USER root
+USER daemon
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/usr/app/pscextract.jar"]
