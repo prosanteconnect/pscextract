@@ -14,8 +14,9 @@ RUN echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/arti
 RUN apt update
 RUN apt install -y mongodb-database-tools mongodb-mongosh
 COPY --from=build /usr/src/app/target/pscextract-*.jar /usr/app/pscextract.jar
-RUN mkdir -p /app/extract-repo
-RUN chown -R daemon: /app/extract-repo
+RUN mkdir -p /app/extract-repo && mkdir -p /app/resources
+COPY --from=build /usr/src/app/src/main/resources/aggregate.mongo /app/resources/
+RUN chown -R daemon: /app
 USER daemon
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/usr/app/pscextract.jar"]
