@@ -82,7 +82,7 @@ public class ExtractionController {
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 exportService.export();
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 log.error("Error during export", e);
             }
         });
