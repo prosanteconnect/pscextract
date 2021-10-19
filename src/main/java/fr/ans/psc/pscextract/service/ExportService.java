@@ -59,7 +59,7 @@ public class ExportService {
      *
      * @throws IOException the io exception
      */
-    public void export() throws IOException {
+    public void export() throws IOException, InterruptedException {
         List<String> fieldsList = Arrays.stream(PsLine.class.getDeclaredFields()).map(Field::getName).collect(Collectors.toList());
 
         String fields = String.join(",", fieldsList);
@@ -80,9 +80,14 @@ public class ExportService {
         log.info("running command : {}", cmd);
         log.info("exporting schema {}", "extractRass");
 
-        Runtime.getRuntime().exec(cmd);
+        Process p = Runtime.getRuntime().exec(cmd);
+        if (p.waitFor() == 0) {
+            log.info("export done");
+        } else {
+            throw new RuntimeException("export failed, return code of mongosh comannd : " + p.exitValue());
+        }
 
-        log.info("export done");
+
     }
 
 }
