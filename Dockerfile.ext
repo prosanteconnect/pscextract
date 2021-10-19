@@ -11,7 +11,7 @@ RUN apt update \
 RUN apt update
 RUN apt install -y mongodb-database-tools mongodb-mongosh
 COPY --from=build /usr/src/app/target/pscextract-*.jar /usr/app/pscextract.jar
-RUN mkdir -p /app/extract-repo && mkdir -p app/resources
+RUN mkdir -p /app/extract-repo && mkdir -p /app/resources
 COPY --from=build /usr/src/app/src/main/resources/aggregate.mongo /app/resources/
 RUN chown -R daemon: /app
 USER daemon
