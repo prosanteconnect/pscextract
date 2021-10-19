@@ -27,7 +27,7 @@ class ExportServiceTest {
 
     @Test
     @Disabled
-    void extractTest() throws IOException {
+    void extractTest() throws IOException, InterruptedException {
         es.export();
     }
 
