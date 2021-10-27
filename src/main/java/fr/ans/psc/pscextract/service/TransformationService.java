@@ -103,10 +103,11 @@ public class TransformationService {
      * @param out the OutputStream
      */
     public void zipFile(OutputStream out, boolean prod) throws IOException {
-        FileSystemResource resource = new FileSystemResource(
-                FileNamesUtil.getFilePath(filesDirectory, prod ?
-                        FileNamesUtil.extractRASSName(extractName, extractTime) :
-                        extractTestName + ".txt"));
+
+        FileSystemResource resource = new FileSystemResource(FileNamesUtil.getFilePath(filesDirectory, prod ?
+                                                FileNamesUtil.extractRASSName(extractName, extractTime) :
+                                                extractTestName + ".txt"));
+
         try (ZipOutputStream zippedOut = new ZipOutputStream(out);) {
             log.info(resource.getFilename());
             ZipEntry e = new ZipEntry(Objects.requireNonNull(resource.getFilename()));
@@ -121,6 +122,7 @@ public class TransformationService {
             zippedOut.finish();
         } catch (IOException e) {
             log.error("zipping file failed", e);
+            out.close();
             throw e;
         }
     }
