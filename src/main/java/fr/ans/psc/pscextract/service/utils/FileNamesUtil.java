@@ -81,4 +81,24 @@ public class FileNamesUtil {
         return new Date(0);
     }
 
+    public static File getLatestExtract(String filesDirectory, String extractName) {
+        File[] allFiles = new File(filesDirectory).listFiles();
+        File latestExtractFile = null;
+
+        List<File> extractFiles = new ArrayList<>();
+
+        for (File file : allFiles != null ? allFiles : new File[0]) {
+            if (file.getName().startsWith(extractName)) {
+                extractFiles.add(file);
+            }
+        }
+
+        extractFiles.sort(FileNamesUtil::compare);
+
+        if (!extractFiles.isEmpty()) {
+            latestExtractFile = extractFiles.get(extractFiles.size() -1);
+        }
+        return latestExtractFile;
+    }
+
 }

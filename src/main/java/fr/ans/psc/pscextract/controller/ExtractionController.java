@@ -1,6 +1,7 @@
 package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.pscextract.service.AggregationService;
+import fr.ans.psc.pscextract.service.DownloadExtractService;
 import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
@@ -38,6 +39,9 @@ public class ExtractionController {
 
     @Autowired
     TransformationService transformationService;
+
+    @Autowired
+    DownloadExtractService downloadExtractService;
 
     @Value("${files.directory}")
     private String filesDirectory;
@@ -120,11 +124,12 @@ public class ExtractionController {
     }
 
     @GetMapping(value = "/download")
-    public void getFile(HttpServletResponse response) throws IOException {
-        response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment; filename=" + transformationService.zipName());
+    public void getFile(HttpServletResponse response) {
+
         try {
-            transformationService.zipFile(response.getOutputStream(), true);
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment; filename=" + downloadExtractService.zipName());
+            downloadExtractService.zipFile(response.getOutputStream(), true);
             log.info("Download done");
             FileNamesUtil.cleanup(filesDirectory, extractTestName);
         } catch (IOException e) {
@@ -135,16 +140,15 @@ public class ExtractionController {
     }
 
     @GetMapping(value="/download/test")
-    public void getDemoExtractFile(HttpServletResponse response) throws IOException {
+    public void getDemoExtractFile(HttpServletResponse response) {
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + extractTestName + ".zip");
         try {
-            transformationService.zipFile(response.getOutputStream(), false);
+            downloadExtractService.zipFile(response.getOutputStream(), false);
             log.info("Download demo file done");
             FileNamesUtil.cleanup(filesDirectory, extractTestName);
         } catch (IOException e) {
             log.error("download failed", e);
-            response.sendError(500, "Input/Output error occurred while zipping file");
         }
 
     }
