@@ -45,8 +45,6 @@ public class DownloadExtractService {
                 extractFile.getName() :
                 extractTestName + ".txt"));
 
-        System.out.println(resource.getFilename());
-
         try (ZipOutputStream zippedOut = new ZipOutputStream(out);) {
             log.info(resource.getFilename());
             ZipEntry e = new ZipEntry(Objects.requireNonNull(resource.getFilename()));
