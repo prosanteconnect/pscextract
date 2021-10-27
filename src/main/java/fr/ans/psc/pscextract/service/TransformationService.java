@@ -63,7 +63,7 @@ public class TransformationService {
                 "Libellé Voie (coord. structure)|Mention distribution (coord. structure)|" +
                 "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
-                "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (structure)|" +
+                "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|";
         setExtractionTime();
         Files.write(Paths.get(FileNamesUtil.getFilePath(
@@ -102,12 +102,12 @@ public class TransformationService {
      *
      * @param out the OutputStream
      */
-    public void zipFile(OutputStream out, boolean prod) {
+    public void zipFile(OutputStream out, boolean prod) throws IOException {
         FileSystemResource resource = new FileSystemResource(
                 FileNamesUtil.getFilePath(filesDirectory, prod ?
                         FileNamesUtil.extractRASSName(extractName, extractTime) :
                         extractTestName + ".txt"));
-        try (ZipOutputStream zippedOut = new ZipOutputStream(out)) {
+        try (ZipOutputStream zippedOut = new ZipOutputStream(out);) {
             log.info(resource.getFilename());
             ZipEntry e = new ZipEntry(Objects.requireNonNull(resource.getFilename()));
             // Configure the zip entry, the properties of the file
@@ -119,8 +119,9 @@ public class TransformationService {
             StreamUtils.copy(resource.getInputStream(), zippedOut);
             zippedOut.closeEntry();
             zippedOut.finish();
-        } catch (Exception e) {
-            log.error(e.getMessage());
+        } catch (IOException e) {
+            log.error("zipping file failed", e);
+            throw e;
         }
     }
 
