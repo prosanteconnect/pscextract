@@ -41,7 +41,7 @@ public class FileNamesUtil {
         }
     }
 
-    public static void cleanup(String filesDirectory, String exceptFile) throws IOException {
+    public static void cleanup(String filesDirectory, String exceptFile)  {
         log.info("Cleaning files repository, removing all but latest file and demo");
         File[] fileArray = new File(filesDirectory).listFiles();
         List<File> listOfFiles = new ArrayList<>();
