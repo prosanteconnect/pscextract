@@ -123,25 +123,43 @@ public class ExtractionController {
     public void getFile(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + transformationService.zipName());
-        transformationService.zipFile(response.getOutputStream(), true);
-        log.info("Download done");
-        FileNamesUtil.cleanup(filesDirectory, extractTestName);
+        try {
+            transformationService.zipFile(response.getOutputStream(), true);
+            log.info("Download done");
+            FileNamesUtil.cleanup(filesDirectory, extractTestName);
+        } catch (IOException e) {
+            log.error("download failed", e);
+            response.sendError(500, "Input/Output error occurred while zipping file");
+        }
+
     }
 
     @GetMapping(value="/download/test")
     public void getDemoExtractFile(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + extractTestName + ".zip");
-        transformationService.zipFile(response.getOutputStream(), false);
-        log.info("Download demo file done");
-        FileNamesUtil.cleanup(filesDirectory, extractTestName);
+        try {
+            transformationService.zipFile(response.getOutputStream(), false);
+            log.info("Download demo file done");
+            FileNamesUtil.cleanup(filesDirectory, extractTestName);
+        } catch (IOException e) {
+            log.error("download failed", e);
+            response.sendError(500, "Input/Output error occurred while zipping file");
+        }
+
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
-    public String cleanAll() throws IOException {
-        FileUtils.cleanDirectory(new File(filesDirectory));
-        log.info("all files in {} were deleted!", filesDirectory);
-        return "all files in storage were deleted";
+    public String cleanAll()  {
+        try {
+            FileUtils.cleanDirectory(new File(filesDirectory));
+            log.info("all files in {} were deleted!", filesDirectory);
+            return "all files in storage were deleted";
+        } catch (IOException e) {
+            log.error("cleaning directory failed", e);
+            return "cleaning directory failed";
+        }
+
     }
 
 }
