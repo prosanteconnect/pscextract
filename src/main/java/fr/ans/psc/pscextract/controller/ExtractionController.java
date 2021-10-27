@@ -129,7 +129,7 @@ public class ExtractionController {
             FileNamesUtil.cleanup(filesDirectory, extractTestName);
         } catch (IOException e) {
             log.error("download failed", e);
-            response.sendError(500, "Input/Output error occurred while zipping file");
+            response.setStatus(500);
         }
 
     }
