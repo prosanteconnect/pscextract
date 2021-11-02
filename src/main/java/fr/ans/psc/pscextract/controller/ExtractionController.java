@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -156,8 +157,9 @@ public class ExtractionController {
         File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
 
         if (extractFile.exists()) {
-            try {
-                ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(Paths.get(extractFile.getAbsolutePath())));
+//            try {
+//                ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(Paths.get(extractFile.getAbsolutePath())));
+                FileSystemResource resource = new FileSystemResource(extractFile);
 
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
@@ -165,10 +167,10 @@ public class ExtractionController {
                 responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractFile.length()));
                 return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
 
-            } catch (IOException e) {
-                log.error("could not attach zip file", e);
-                return new ResponseEntity<>("could not attach zip file", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+//            } catch (IOException e) {
+//                log.error("could not attach zip file", e);
+//                return new ResponseEntity<>("could not attach zip file", HttpStatus.INTERNAL_SERVER_ERROR);
+//            }
         }
         else {
             return new ResponseEntity<>("File not found", HttpStatus.INTERNAL_SERVER_ERROR);
