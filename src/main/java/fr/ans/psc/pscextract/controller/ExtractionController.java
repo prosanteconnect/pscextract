@@ -149,17 +149,25 @@ public class ExtractionController {
 
     @GetMapping(value = "/download")
     @ResponseBody
-    public ResponseEntity getFile() throws IOException {
+    public ResponseEntity getFile() {
         File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
 
         if (extractFile.exists()) {
-            ZipInputStream zis = new ZipInputStream(new FileInputStream(extractFile));
-            byte[] out = StreamUtils.copyToByteArray(zis);
+            try {
+                ZipInputStream zis = new ZipInputStream(new FileInputStream(extractFile));
+                byte[] out = StreamUtils.copyToByteArray(zis);
 
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
+                System.out.println("byte array length" + out.length);
 
-            return new ResponseEntity<>(out, responseHeaders, HttpStatus.OK);
+                HttpHeaders responseHeaders = new HttpHeaders();
+                responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
+                responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+                return new ResponseEntity<>(out, responseHeaders, HttpStatus.OK);
+
+            } catch (IOException e) {
+                log.error("could not attach zip file", e);
+                return new ResponseEntity<>("could not attach zip file", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
         else {
             return new ResponseEntity<>("File not found", HttpStatus.INTERNAL_SERVER_ERROR);
