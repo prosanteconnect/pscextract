@@ -41,6 +41,9 @@ public class TransformationService {
 
     private String extractTime ="197001010001";
 
+    private final String ZIP_EXTENSION = ".zip";
+    private final String TXT_EXTENSION = ".txt";
+
     /**
      * Transform csv.
      *
@@ -110,10 +113,10 @@ public class TransformationService {
             System.out.println("after sequencing");
 
             // TO DO : zip from input stream
-            ZipEntry zipEntry = new ZipEntry(extractName + "_" + extractTime + ".txt");
+            ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(TXT_EXTENSION));
             System.out.println("zip entry name : " + zipEntry.getName());
             zipEntry.setTime(System.currentTimeMillis());
-            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(filesDirectory, extractName + "_" + extractTime + ".zip")));
+            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
             zos.putNextEntry(zipEntry);
             StreamUtils.copy(fileContent, zos);
             zos.closeEntry();
@@ -203,8 +206,8 @@ public class TransformationService {
      *
      * @return the string
      */
-    public String zipName() {
-        return extractName + "_" + extractTime + ".zip";
+    public String getFileNameWithExtension(String fileExtension) {
+        return extractName + "_" + extractTime + fileExtension;
     }
 
 }

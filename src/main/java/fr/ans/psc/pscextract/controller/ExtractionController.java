@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StreamUtils;
@@ -22,11 +24,15 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 public class ExtractionController {
@@ -48,6 +54,9 @@ public class ExtractionController {
 
     @Value("${extract.test.name}")
     public String extractTestName;
+
+    @Value("${extract.name}")
+    private String extractName;
 
     /**
      * logger.
@@ -123,20 +132,38 @@ public class ExtractionController {
         });
     }
 
+//    @GetMapping(value = "/download")
+//    public void getFile(HttpServletResponse response) {
+
+//        try {
+//            response.setContentType("application/zip");
+//            response.setHeader("Content-Disposition", "attachment; filename=" + downloadExtractService.zipName());
+//            downloadExtractService.zipFile(response.getOutputStream(), true);
+//            log.info("Download done");
+//            FileNamesUtil.cleanup(filesDirectory, extractTestName);
+//        } catch (IOException e) {
+//            log.error("download failed", e);
+//            response.setStatus(500);
+//        }
+//    }
+
     @GetMapping(value = "/download")
-    public void getFile(HttpServletResponse response) {
+    @ResponseBody
+    public ResponseEntity getFile() throws IOException {
+        File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
 
-        try {
-            response.setContentType("application/zip");
-            response.setHeader("Content-Disposition", "attachment; filename=" + downloadExtractService.zipName());
-            downloadExtractService.zipFile(response.getOutputStream(), true);
-            log.info("Download done");
-            FileNamesUtil.cleanup(filesDirectory, extractTestName);
-        } catch (IOException e) {
-            log.error("download failed", e);
-            response.setStatus(500);
+        if (extractFile.exists()) {
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(extractFile));
+            byte[] out = StreamUtils.copyToByteArray(zis);
+
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
+
+            return new ResponseEntity<>(out, responseHeaders, HttpStatus.OK);
         }
-
+        else {
+            return new ResponseEntity<>("File not found", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping(value="/download/test")
