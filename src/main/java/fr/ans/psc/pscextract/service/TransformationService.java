@@ -71,16 +71,6 @@ public class TransformationService {
         ByteArrayInputStream lineStream = new ByteArrayInputStream(header.getBytes(StandardCharsets.UTF_8));
         allLinesStreams.add(lineStream);
         setExtractionTime();
-//        Files.write(Paths.get(FileNamesUtil.getFilePath(
-//                filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime))), Collections.singleton(header),
-//                StandardCharsets.UTF_8);
-
-//        FileWriter f = new FileWriter(FileNamesUtil.getFilePath(
-//                filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime)), true);
-//        BufferedWriter b = new BufferedWriter(f);
-//        PrintWriter p = new PrintWriter(b, true);
-
-
 
         // ObjectRowProcessor converts the parsed values and gives you the resulting row.
         ObjectRowProcessor rowProcessor = new ObjectRowProcessor() {
@@ -89,7 +79,6 @@ public class TransformationService {
                 String line = String.join("|", getLineArray(objects)) + "|\n";
                 ByteArrayInputStream lineStream = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
                 allLinesStreams.add(lineStream);
-//                p.println(line);
             }
         };
 
@@ -103,26 +92,19 @@ public class TransformationService {
         CsvParser parser = new CsvParser(parserSettings);
 
         try {
-            System.out.println("extractName : " + extractName);
-            System.out.println("filesDirectory : " + filesDirectory);
-            System.out.println("filePath : " + FileNamesUtil.getFilePath(filesDirectory, extractName));
-            System.out.println("before parsing");
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
-            System.out.println("after parsing");
             InputStream fileContent = new SequenceInputStream(Collections.enumeration(allLinesStreams));
-            System.out.println("after sequencing");
 
-            // TO DO : zip from input stream
             ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(TXT_EXTENSION));
-            System.out.println("zip entry name : " + zipEntry.getName());
             zipEntry.setTime(System.currentTimeMillis());
             ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
             zos.putNextEntry(zipEntry);
             StreamUtils.copy(fileContent, zos);
+
+            fileContent.close();
             zos.closeEntry();
             zos.finish();
 
-//        p.close();b.close();f.close();
             log.info("transformation complete!");
         } catch (FileNotFoundException e) {
             log.error("csv file unavailable for transformation");
@@ -132,36 +114,6 @@ public class TransformationService {
             throw ioe;
         }
 
-    }
-
-    /**
-     * Zip file.
-     *
-     * @param out the OutputStream
-     */
-    public void zipFile(OutputStream out, boolean prod) throws IOException {
-
-        FileSystemResource resource = new FileSystemResource(FileNamesUtil.getFilePath(filesDirectory, prod ?
-                                                FileNamesUtil.extractRASSName(extractName, extractTime) :
-                                                extractTestName + ".txt"));
-
-        try (ZipOutputStream zippedOut = new ZipOutputStream(out);) {
-            log.info(resource.getFilename());
-            ZipEntry e = new ZipEntry(Objects.requireNonNull(resource.getFilename()));
-            // Configure the zip entry, the properties of the file
-            e.setSize(resource.contentLength());
-            e.setTime(System.currentTimeMillis());
-            // etc.
-            zippedOut.putNextEntry(e);
-            // And the content of the resource:
-            StreamUtils.copy(resource.getInputStream(), zippedOut);
-            zippedOut.closeEntry();
-            zippedOut.finish();
-        } catch (IOException e) {
-            log.error("zipping file failed", e);
-            out.close();
-            throw e;
-        }
     }
 
     private String[] getLineArray(Object[] objects) {
