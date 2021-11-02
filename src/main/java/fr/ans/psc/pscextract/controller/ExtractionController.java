@@ -151,13 +151,14 @@ public class ExtractionController {
     @ResponseBody
     public ResponseEntity getFile() {
         File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+        System.out.println("fileName : " + extractFile.getName());
 
         if (extractFile.exists()) {
             try {
                 ZipInputStream zis = new ZipInputStream(new FileInputStream(extractFile));
                 byte[] out = StreamUtils.copyToByteArray(zis);
 
-                System.out.println("byte array length" + out.length);
+                System.out.println("byte array length : " + out.length);
 
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
