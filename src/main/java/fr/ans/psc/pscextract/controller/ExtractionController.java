@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +28,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
@@ -151,19 +154,16 @@ public class ExtractionController {
     @ResponseBody
     public ResponseEntity getFile() {
         File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-        System.out.println("fileName : " + extractFile.getName());
 
         if (extractFile.exists()) {
             try {
-                ZipInputStream zis = new ZipInputStream(new FileInputStream(extractFile));
-                byte[] out = StreamUtils.copyToByteArray(zis);
-
-                System.out.println("byte array length : " + out.length);
+                ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(Paths.get(extractFile.getAbsolutePath())));
 
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
                 responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
-                return new ResponseEntity<>(out, responseHeaders, HttpStatus.OK);
+                responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractFile.length()));
+                return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
 
             } catch (IOException e) {
                 log.error("could not attach zip file", e);
