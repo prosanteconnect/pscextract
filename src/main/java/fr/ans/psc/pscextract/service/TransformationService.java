@@ -103,8 +103,11 @@ public class TransformationService {
             System.out.println("extractName : " + extractName);
             System.out.println("filesDirectory : " + filesDirectory);
             System.out.println("filePath : " + FileNamesUtil.getFilePath(filesDirectory, extractName));
+            System.out.println("before parsing");
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
+            System.out.println("after parsing");
             InputStream fileContent = new SequenceInputStream(Collections.enumeration(allLinesStreams));
+            System.out.println("after sequencing");
 
             // TO DO : zip from input stream
             ZipEntry zipEntry = new ZipEntry(extractName + "_" + extractTime + ".txt");
