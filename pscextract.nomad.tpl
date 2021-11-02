@@ -37,7 +37,7 @@ job "pscextract" {
     task "pscextract" {
       driver = "docker"
       env {
-        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties"
+        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms2g -Xmx2g"
       }
       config {
         image = "${artifact.image}:${artifact.tag}"
@@ -72,7 +72,7 @@ EOF
       }
       resources {
         cpu = 1000
-        memory = 1024
+        memory = 2148
       }
       service {
         name = "$\u007BNOMAD_JOB_NAME\u007D"
