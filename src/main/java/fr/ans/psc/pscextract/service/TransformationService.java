@@ -18,7 +18,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -48,7 +50,6 @@ public class TransformationService {
      */
     public void transformCsv() throws IOException {
         log.info("starting file transformation");
-        List<InputStream> allLinesStreams = new ArrayList<>();
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
                 "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
                 "Téléphone (coord. correspondance)|Adresse e-mail (coord. correspondance)|Code civilité|Code profession|" +
@@ -63,30 +64,23 @@ public class TransformationService {
                 "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
-                "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
-
-        ByteArrayInputStream lineStream = new ByteArrayInputStream(header.getBytes(StandardCharsets.UTF_8));
-        allLinesStreams.add(lineStream);
+                "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|";
         setExtractionTime();
-//        Files.write(Paths.get(FileNamesUtil.getFilePath(
-//                filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime))), Collections.singleton(header),
-//                StandardCharsets.UTF_8);
+        Files.write(Paths.get(FileNamesUtil.getFilePath(
+                filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime))), Collections.singleton(header),
+                StandardCharsets.UTF_8);
 
-//        FileWriter f = new FileWriter(FileNamesUtil.getFilePath(
-//                filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime)), true);
-//        BufferedWriter b = new BufferedWriter(f);
-//        PrintWriter p = new PrintWriter(b, true);
-
-
+        FileWriter f = new FileWriter(FileNamesUtil.getFilePath(
+                filesDirectory, FileNamesUtil.extractRASSName(extractName, extractTime)), true);
+        BufferedWriter b = new BufferedWriter(f);
+        PrintWriter p = new PrintWriter(b, true);
 
         // ObjectRowProcessor converts the parsed values and gives you the resulting row.
         ObjectRowProcessor rowProcessor = new ObjectRowProcessor() {
             @Override
             public void rowProcessed(Object[] objects, ParsingContext parsingContext) {
-                String line = String.join("|", getLineArray(objects)) + "|\n";
-                ByteArrayInputStream lineStream = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
-                allLinesStreams.add(lineStream);
-//                p.println(line);
+                String line = String.join("|", getLineArray(objects)) + "|";
+                p.println(line);
             }
         };
 
@@ -98,34 +92,9 @@ public class TransformationService {
         parserSettings.setNullValue("");
 
         CsvParser parser = new CsvParser(parserSettings);
-
-        try {
-            System.out.println("extractName : " + extractName);
-            System.out.println("filesDirectory : " + filesDirectory);
-            System.out.println("filePath : " + FileNamesUtil.getFilePath(filesDirectory, extractName));
-            parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
-            InputStream fileContent = new SequenceInputStream(Collections.enumeration(allLinesStreams));
-
-            // TO DO : zip from input stream
-            ZipEntry zipEntry = new ZipEntry(extractName + "_" + extractTime + ".txt");
-            System.out.println("zip entry name : " + zipEntry.getName());
-            zipEntry.setTime(System.currentTimeMillis());
-            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(filesDirectory, extractName + "_" + extractTime + ".zip")));
-            zos.putNextEntry(zipEntry);
-            StreamUtils.copy(fileContent, zos);
-            zos.closeEntry();
-            zos.finish();
-
-//        p.close();b.close();f.close();
-            log.info("transformation complete!");
-        } catch (FileNotFoundException e) {
-            log.error("csv file unavailable for transformation");
-            throw e;
-        } catch (IOException ioe) {
-            log.error("could not put zip entry in zip output stream");
-            throw ioe;
-        }
-
+        parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
+        p.close();b.close();f.close();
+        log.info("transformation complete!");
     }
 
     /**
