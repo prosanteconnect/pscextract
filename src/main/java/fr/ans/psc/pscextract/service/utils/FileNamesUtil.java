@@ -41,7 +41,7 @@ public class FileNamesUtil {
         }
     }
 
-    public static void cleanup(String filesDirectory, String exceptFile) throws IOException {
+    public static void cleanup(String filesDirectory, String exceptFile)  {
         log.info("Cleaning files repository, removing all but latest file and demo");
         File[] fileArray = new File(filesDirectory).listFiles();
         List<File> listOfFiles = new ArrayList<>();
@@ -80,5 +80,26 @@ public class FileNamesUtil {
         }
         return new Date(0);
     }
+
+    public static File getLatestExtract(String filesDirectory, String extractName) {
+        File[] allFiles = new File(filesDirectory).listFiles();
+        File latestExtractFile = null;
+
+        List<File> extractFiles = new ArrayList<>();
+
+        for (File file : allFiles != null ? allFiles : new File[0]) {
+            if (file.getName().startsWith(extractName)) {
+                extractFiles.add(file);
+            }
+        }
+
+        extractFiles.sort(FileNamesUtil::compare);
+
+        if (!extractFiles.isEmpty()) {
+            latestExtractFile = extractFiles.get(extractFiles.size() -1);
+        }
+        return latestExtractFile;
+    }
+
 
 }
