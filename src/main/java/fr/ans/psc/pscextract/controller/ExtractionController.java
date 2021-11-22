@@ -181,4 +181,10 @@ public class ExtractionController {
 
     }
 
+    @PostMapping(value = "/gc")
+    public void forceGC() {
+        log.info("calling GC...");
+        System.gc();
+        log.info("gc has been called");
+    }
 }
