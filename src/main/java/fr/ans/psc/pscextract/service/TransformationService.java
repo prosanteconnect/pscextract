@@ -104,6 +104,7 @@ public class TransformationService {
             fileContent.close();
             zos.closeEntry();
             zos.finish();
+            zos.close();
 
             log.info("transformation complete!");
         } catch (FileNotFoundException e) {
