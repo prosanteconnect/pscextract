@@ -108,6 +108,7 @@ spring.mail.username={{ with secret "psc-ecosystem/pscextract" }}{{ .Data.data.s
 spring.mail.password={{ with secret "psc-ecosystem/pscextract" }}{{ .Data.data.spring_mail_password }}{{ end }}
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
+pscextract.mail.receiver={{ with secret "psc-ecosystem/pscextract" }}{{ .Data.data.pscextract_mail_receiver }}{{ end }}
 EOF
         destination = "secrets/application.properties"
       }
