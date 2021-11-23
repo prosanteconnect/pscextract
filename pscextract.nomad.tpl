@@ -34,10 +34,44 @@ job "pscextract" {
       }
     }
 
+    task "prep-volume" {
+      driver = "docker"
+      config {
+        image = "busybox:latest"
+        mount {
+          type = "volume"
+          target = "/app/extract-repo"
+          source = "pscextract-data"
+          readonly = false
+          volume_options {
+            no_copy = false
+            driver_config {
+              name = "pxd"
+              options {
+                io_priority = "high"
+                size = 10
+                repl = 3
+              }
+            }
+          }
+        }
+        command = "sh"
+        args = ["-c", "mkdir -p /app/extract-repo/working-directory && chown -R 1:1 /app/extract-repo/working-directory"]
+      }
+      resources {
+        cpu = 200
+        memory = 128
+      }
+      lifecycle {
+        hook = "prestart"
+        sidecar = "false"
+      }
+    }
+
     task "pscextract" {
       driver = "docker"
       env {
-        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx2g -XX:+UseG1GC"
+        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx1792m -XX:+UseG1GC"
       }
       config {
         image = "${artifact.image}:${artifact.tag}"
@@ -64,6 +98,7 @@ mongodb.username={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_use
 mongodb.password={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_pass}}{{ end }}
 mongodb.admin.database=admin
 files.directory=/app/extract-repo
+working.directory=/app/extract-repo/working-directory
 extract.name=Extraction_Pro_sante_connect
 extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule
 server.servlet.context-path=/pscextract/v1
