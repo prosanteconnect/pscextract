@@ -34,6 +34,40 @@ job "pscextract" {
       }
     }
 
+    task "prep-volume" {
+      driver = "docker"
+      config {
+        image = "busybox:latest"
+        mount {
+          type = "volume"
+          target = "/app/extract-repo"
+          source = "pscextract-data"
+          readonly = false
+          volume_options {
+            no_copy = false
+            driver_config {
+              name = "pxd"
+              options {
+                io_priority = "high"
+                size = 10
+                repl = 3
+              }
+            }
+          }
+        }
+        command = "sh"
+        args = ["-c", "mkdir -p /app/extract-repo/working-directory"]
+      }
+      resources {
+        cpu = 200
+        memory = 128
+      }
+      lifecycle {
+        hook = "prestart"
+        sidecar = "false"
+      }
+    }
+
     task "pscextract" {
       driver = "docker"
       env {
