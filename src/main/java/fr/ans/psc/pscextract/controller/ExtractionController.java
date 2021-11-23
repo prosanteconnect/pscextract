@@ -52,7 +52,7 @@ public class ExtractionController {
     @Value("${extract.name}")
     private String extractName;
 
-    @Value("${spring.mail.username}")
+    @Value("${pscextract.mail.receiver}")
     private String receiver;
 
     /**
