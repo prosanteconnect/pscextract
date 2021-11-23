@@ -122,8 +122,8 @@ public class TransformationService {
             zos.finish();
             zos.close();
 
-            Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
-                    Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+//            Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
+//                    Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
 
             log.info("transformation complete!");
         } catch (FileNotFoundException e) {

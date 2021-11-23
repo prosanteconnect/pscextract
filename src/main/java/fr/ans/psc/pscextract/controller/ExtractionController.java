@@ -99,12 +99,12 @@ public class ExtractionController {
             try {
                 transformationService.transformCsv();
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
+                log.info("Transformation done.");
+                output.setResult(ResponseEntity.ok("Transformation done."));
             } catch (IOException e) {
                 log.error("Error during transformation", e);
                 log.error(e.getMessage());
             }
-            log.info("Transformation done.");
-            output.setResult(ResponseEntity.ok("Transformation done."));
         });
         return output;
     }
