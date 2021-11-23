@@ -56,10 +56,8 @@ public class TransformationService {
      */
     public void transformCsv() throws IOException {
         log.info("starting file transformation");
-//        List<InputStream> allLinesStreams = new ArrayList<>();
         File tempExtractFile = File.createTempFile("tempExtract", "tmp");
-        FileWriter fw = new FileWriter(tempExtractFile, StandardCharsets.UTF_8);
-        BufferedWriter bw = new BufferedWriter(fw);
+        BufferedWriter bw = Files.newBufferedWriter(tempExtractFile.toPath(), StandardCharsets.UTF_8);
 
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
                 "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
@@ -77,8 +75,6 @@ public class TransformationService {
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
 
-        ByteArrayInputStream lineStream = new ByteArrayInputStream(header.getBytes(StandardCharsets.UTF_8));
-//        allLinesStreams.add(lineStream);
         bw.write(header);
         setExtractionTime();
 
@@ -87,13 +83,11 @@ public class TransformationService {
             @Override
             public void rowProcessed(Object[] objects, ParsingContext parsingContext) {
                 String line = String.join("|", getLineArray(objects)) + "|\n";
-//                ByteArrayInputStream lineStream = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
                 try {
                     bw.write(line);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                allLinesStreams.add(lineStream);
             }
         };
 
@@ -108,8 +102,8 @@ public class TransformationService {
 
         try {
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
+            bw.close();
             InputStream fileContent = new FileInputStream(tempExtractFile);
-//                    new SequenceInputStream(Collections.enumeration(allLinesStreams));
 
             ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(TXT_EXTENSION));
             zipEntry.setTime(System.currentTimeMillis());
@@ -124,6 +118,8 @@ public class TransformationService {
 
             Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
                     Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+
+            tempExtractFile.delete();
 
             log.info("transformation complete!");
         } catch (FileNotFoundException e) {
