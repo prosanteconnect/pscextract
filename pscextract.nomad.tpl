@@ -102,6 +102,12 @@ working.directory=/app/extract-repo/working-directory
 extract.name=Extraction_Pro_sante_connect
 extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule
 server.servlet.context-path=/pscextract/v1
+spring.mail.host={{ with secret "psc-ecosystem/pscextract }}{{ .Data.data.spring_mail_host }}{{ end }}
+spring.mail.port={{ with secret "psc-ecosystem/pscextract }}{{ .Data.data.spring_mail_port }}{{ end }}
+spring.mail.username={{ with secret "psc-ecosystem/pscextract }}{{ .Data.data.spring_mail_username }}{{ end }}
+spring.mail.password={{ with secret "psc-ecosystem/pscextract }}{{ .Data.data.spring_mail_password }}{{ end }}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
 EOF
         destination = "secrets/application.properties"
       }

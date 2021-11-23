@@ -1,6 +1,7 @@
 package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.pscextract.service.AggregationService;
+import fr.ans.psc.pscextract.service.EmailService;
 import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
@@ -39,6 +40,9 @@ public class ExtractionController {
     @Autowired
     TransformationService transformationService;
 
+    @Autowired
+    EmailService emailService;
+
     @Value("${files.directory}")
     private String filesDirectory;
 
@@ -47,6 +51,9 @@ public class ExtractionController {
 
     @Value("${extract.name}")
     private String extractName;
+
+    @Value("${spring.mail.username}")
+    private String receiver;
 
     /**
      * logger.
@@ -117,6 +124,10 @@ public class ExtractionController {
                 exportService.export();
                 transformationService.transformCsv();
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
+
+                File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+                String text = "Le fichier " + latestExtract.getName() + "a été généré par pscextract et est disponible au téléchargement";
+                emailService.sendSimpleMessage(receiver, "Nouvel ExtractRass", text);
             } catch (IOException | InterruptedException e) {
                 log.error("Exception raised :", e);
             }
