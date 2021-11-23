@@ -64,6 +64,7 @@ mongodb.username={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_use
 mongodb.password={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_pass}}{{ end }}
 mongodb.admin.database=admin
 files.directory=/app/extract-repo
+working.directory=/app/extract-repo/working-directory
 extract.name=Extraction_Pro_sante_connect
 extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule
 server.servlet.context-path=/pscextract/v1
