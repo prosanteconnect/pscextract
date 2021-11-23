@@ -56,7 +56,9 @@ public class FileNamesUtil {
         }
 
         for(File file : listOfFiles) {
-            file.delete();
+            if (!file.isDirectory()) {
+                file.delete();
+            }
         }
     }
 
