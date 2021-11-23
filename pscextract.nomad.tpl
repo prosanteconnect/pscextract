@@ -71,7 +71,7 @@ job "pscextract" {
     task "pscextract" {
       driver = "docker"
       env {
-        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx2g -XX:+UseG1GC"
+        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx1792m -XX:+UseG1GC"
       }
       config {
         image = "${artifact.image}:${artifact.tag}"
