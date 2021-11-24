@@ -10,7 +10,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,10 +25,14 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String sender;
 
-    public void sendSimpleMessage(String to, String subject, File latestExtract) {
+    @Value("${pscextract.mail.receiver}")
+    private String receiver;
+
+    public void sendSimpleMessage(String subject, File latestExtract) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(sender);
-        message.setTo(to);
+        String[] allReceivers = receiver.split(",");
+        message.setTo(allReceivers);
         message.setSubject(subject);
         message.setText(getEmailMessage(latestExtract));
 
