@@ -126,19 +126,11 @@ public class ExtractionController {
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
                 File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-                String text = "Le fichier " + latestExtract.getName() + " a été généré par pscextract et est disponible au téléchargement.";
-                emailService.sendSimpleMessage(receiver, "Nouvel ExtractRass", text);
+                emailService.sendSimpleMessage(receiver, "Nouvel ExtractRass", latestExtract);
             } catch (IOException | InterruptedException e) {
                 log.error("Exception raised :", e);
             }
         });
-    }
-
-    @PostMapping(value="/test-mail")
-    public void testMail() {
-        File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-        String text = "Le fichier " + latestExtract.getName() + " a été généré par pscextract et est disponible au téléchargement.";
-        emailService.sendSimpleMessage(receiver, "Nouvel ExtractRass", text);
     }
 
     @GetMapping(value = "/download")
