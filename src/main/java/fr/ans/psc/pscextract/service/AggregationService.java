@@ -54,9 +54,6 @@ public class AggregationService {
      */
     public void aggregate() throws IOException, InterruptedException {
         log.info("aggregating ...");
-        String cmdSafe = "/usr/bin/mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username=" + mongoUserName + " --password=***"
-                + " --authenticationDatabase=" + mongoAdminDatabase + " " + mongodbName + " < /app/resources/aggregate.mongo";
-        log.info("running command: {}", cmdSafe);
 
         // transform Dos/Windows end of lines (CRLF) to Unix end of lines (LF).
         Process dos2Unix = Runtime.getRuntime().exec("dos2unix /app/resources/aggregate.mongo");
