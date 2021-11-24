@@ -9,12 +9,6 @@ job "pscextract" {
 
   group "pscextract-services" {
     count = "1"
-    restart {
-      attempts = 3
-      delay = "60s"
-      interval = "1h"
-      mode = "fail"
-    }
 
     constraint {
       attribute = "$\u007Bnode.class\u007D"
@@ -69,6 +63,12 @@ job "pscextract" {
     }
 
     task "pscextract" {
+      restart {
+        attempts = 3
+        delay = "60s"
+        interval = "1h"
+        mode = "fail"
+      }
       driver = "docker"
       env {
         JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx1792m -XX:+UseG1GC"
