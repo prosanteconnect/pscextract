@@ -52,9 +52,6 @@ public class ExtractionController {
     @Value("${extract.name}")
     private String extractName;
 
-    @Value("${pscextract.mail.receiver}")
-    private String receiver;
-
     /**
      * logger.
      */
@@ -126,7 +123,7 @@ public class ExtractionController {
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
                 File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-                emailService.sendSimpleMessage(receiver, "Nouvel ExtractRass", latestExtract);
+                emailService.sendSimpleMessage("Nouvel ExtractRass", latestExtract);
             } catch (IOException | InterruptedException e) {
                 log.error("Exception raised :", e);
             }
