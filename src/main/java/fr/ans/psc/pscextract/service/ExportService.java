@@ -77,7 +77,6 @@ public class ExportService {
                 "--type=csv " +
                 "--forceTableScan";
 
-        log.info("running command : {}", cmd);
         log.info("exporting schema {}", "extractRass");
 
         Process p = Runtime.getRuntime().exec(cmd);
