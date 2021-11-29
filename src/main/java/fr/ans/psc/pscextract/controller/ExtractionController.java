@@ -123,7 +123,7 @@ public class ExtractionController {
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
                 File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-                emailService.sendSimpleMessage("Nouvel ExtractRass", latestExtract);
+                emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
             } catch (IOException | InterruptedException e) {
                 log.error("Exception raised :", e);
             }
