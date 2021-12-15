@@ -1,6 +1,7 @@
 package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.pscextract.service.AggregationService;
+import fr.ans.psc.pscextract.service.EmailService;
 import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
@@ -38,6 +39,9 @@ public class ExtractionController {
 
     @Autowired
     TransformationService transformationService;
+
+    @Autowired
+    EmailService emailService;
 
     @Value("${files.directory}")
     private String filesDirectory;
@@ -117,6 +121,9 @@ public class ExtractionController {
                 exportService.export();
                 transformationService.transformCsv();
                 FileNamesUtil.cleanup(filesDirectory, extractTestName);
+
+                File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+                emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
             } catch (IOException | InterruptedException e) {
                 log.error("Exception raised :", e);
             }
