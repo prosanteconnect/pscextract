@@ -100,7 +100,7 @@ mongodb.admin.database=admin
 files.directory=/app/extract-repo
 working.directory=/app/extract-repo/working-directory
 extract.name=Extraction_Pro_sante_connect
-extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule
+extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule.zip
 server.servlet.context-path=/pscextract/v1
 EOF
         destination = "secrets/application.properties"
