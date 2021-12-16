@@ -56,7 +56,9 @@ public class FileNamesUtil {
         }
 
         for(File file : listOfFiles) {
-            file.delete();
+            if (!file.isDirectory()) {
+                file.delete();
+            }
         }
     }
 
@@ -69,7 +71,7 @@ public class FileNamesUtil {
         return 0;
     }
 
-    private static Date getDateFromFileName(File file) throws ParseException {
+    public static Date getDateFromFileName(File file) throws ParseException {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMddhhmm");
 
         String regex = ".*(\\d{12}).*";

@@ -15,7 +15,9 @@ import org.springframework.util.StreamUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -39,6 +41,9 @@ public class TransformationService {
     @Value("${files.directory}")
     private String filesDirectory;
 
+    @Value("${working.directory}")
+    private String workingDirectory;
+
     private String extractTime ="197001010001";
 
     private final String ZIP_EXTENSION = ".zip";
@@ -51,7 +56,9 @@ public class TransformationService {
      */
     public void transformCsv() throws IOException {
         log.info("starting file transformation");
-        List<InputStream> allLinesStreams = new ArrayList<>();
+        File tempExtractFile = File.createTempFile("tempExtract", "tmp");
+        BufferedWriter bw = Files.newBufferedWriter(tempExtractFile.toPath(), StandardCharsets.UTF_8);
+
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
                 "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
                 "Téléphone (coord. correspondance)|Adresse e-mail (coord. correspondance)|Code civilité|Code profession|" +
@@ -68,8 +75,7 @@ public class TransformationService {
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
 
-        ByteArrayInputStream lineStream = new ByteArrayInputStream(header.getBytes(StandardCharsets.UTF_8));
-        allLinesStreams.add(lineStream);
+        bw.write(header);
         setExtractionTime();
 
         // ObjectRowProcessor converts the parsed values and gives you the resulting row.
@@ -77,8 +83,11 @@ public class TransformationService {
             @Override
             public void rowProcessed(Object[] objects, ParsingContext parsingContext) {
                 String line = String.join("|", getLineArray(objects)) + "|\n";
-                ByteArrayInputStream lineStream = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
-                allLinesStreams.add(lineStream);
+                try {
+                    bw.write(line);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         };
 
@@ -93,17 +102,24 @@ public class TransformationService {
 
         try {
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
-            InputStream fileContent = new SequenceInputStream(Collections.enumeration(allLinesStreams));
+            bw.close();
+            InputStream fileContent = new FileInputStream(tempExtractFile);
 
             ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(TXT_EXTENSION));
             zipEntry.setTime(System.currentTimeMillis());
-            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
             zos.putNextEntry(zipEntry);
             StreamUtils.copy(fileContent, zos);
 
             fileContent.close();
             zos.closeEntry();
             zos.finish();
+            zos.close();
+
+            Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
+                    Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+
+            tempExtractFile.delete();
 
             log.info("transformation complete!");
         } catch (FileNotFoundException e) {
