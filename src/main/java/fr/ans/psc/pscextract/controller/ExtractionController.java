@@ -135,7 +135,7 @@ public class ExtractionController {
     public ResponseEntity getFile() {
         File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
 
-        if (extractFile.exists()) {
+        if (extractFile != null) {
                 FileSystemResource resource = new FileSystemResource(extractFile);
 
                 HttpHeaders responseHeaders = new HttpHeaders();
