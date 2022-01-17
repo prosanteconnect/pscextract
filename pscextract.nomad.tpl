@@ -44,7 +44,7 @@ job "pscextract" {
               options {
                 io_priority = "high"
                 size = 10
-                repl = 3
+                repl = 2
               }
             }
           }
