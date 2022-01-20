@@ -44,13 +44,13 @@ job "pscextract" {
               options {
                 io_priority = "high"
                 size = 10
-                repl = 3
+                repl = 2
               }
             }
           }
         }
         command = "sh"
-        args = ["-c", "mkdir -p /app/extract-repo/working-directory && chown -R 1:1 /app/extract-repo/working-directory"]
+        args = ["-c", "mkdir -p /app/extract-repo/working-directory && chown -R 1:1 /app/extract-repo"]
       }
       resources {
         cpu = 200
