@@ -50,7 +50,7 @@ job "pscextract" {
           }
         }
         command = "sh"
-        args = ["-c", "mkdir -p /app/extract-repo/working-directory && chown -R 1:1 /app/extract-repo/working-directory"]
+        args = ["-c", "mkdir -p /app/extract-repo/working-directory && chown -R 1:1 /app/extract-repo"]
       }
       resources {
         cpu = 200
