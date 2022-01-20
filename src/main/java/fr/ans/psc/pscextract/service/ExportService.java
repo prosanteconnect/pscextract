@@ -83,6 +83,7 @@ public class ExportService {
         if (p.waitFor() == 0) {
             log.info("export done");
         } else {
+            log.error("export failed, return code of mongosh comannd : {}", p.exitValue());
             throw new RuntimeException("export failed, return code of mongosh comannd : " + p.exitValue());
         }
 
