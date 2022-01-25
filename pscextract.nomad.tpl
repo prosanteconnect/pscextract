@@ -106,8 +106,8 @@ spring.mail.host={{ with secret "psc-ecosystem/emailing" }}{{ .Data.data.spring_
 spring.mail.port={{ with secret "psc-ecosystem/emailing" }}{{ .Data.data.spring_mail_port }}{{ end }}
 spring.mail.username={{ with secret "psc-ecosystem/emailing" }}{{ .Data.data.spring_mail_username }}{{ end }}
 spring.mail.password={{ with secret "psc-ecosystem/emailing" }}{{ .Data.data.spring_mail_password }}{{ end }}
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.auth={{ with secret "psc-ecosystem/emailing" }}{{ .Data.data.spring_mail_smtp_auth }}{{ end }}
+spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/emailing" }}{{ .Data.data.spring_mail_smtp_starttls_enable }}{{ end }}
 pscextract.mail.receiver={{ with secret "psc-ecosystem/emailing" }}{{ .Data.data.mail_receiver }}{{ end }}
 EOF
         destination = "secrets/application.properties"
