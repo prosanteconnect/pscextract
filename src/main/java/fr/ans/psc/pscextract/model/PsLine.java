@@ -50,7 +50,7 @@ public class PsLine {
     String structure_email;
     String structure_departmentCode;
     String structure_oldStructureId;
-    String structure_registrationAuthority;
+    String profession_situation_registrationAuthority;
     String otherIds;
 
 }
