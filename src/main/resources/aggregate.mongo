@@ -71,7 +71,7 @@ db.psref.aggregate([
 		profession_salutationCode: "$thisPs.professions.salutationCode",
 		profession_lastName: "$thisPs.professions.lastName",
 		profession_firstName: "$thisPs.professions.firstName",
-		profession_expertise_categoryCode: "$thisPs.professions.expertises.categoryCode",
+		profession_expertise_categoryCode: "$thisPs.professions.expertises.typeCode",
 		profession_expertise_code: "$thisPs.professions.expertises.code",
 		profession_situation_modeCode: "$thisPs.professions.workSituations.modeCode",
 		profession_situation_activitySectorCode: "$thisPs.professions.workSituations.activitySectorCode",
@@ -80,7 +80,7 @@ db.psref.aggregate([
 		structure_siteSIRET: "$thisStructure.siteSIRET",
 		structure_siteSIREN: "$thisStructure.siteSIREN",
 		structure_siteFINESS: "$thisStructure.siteFINESS",
-		structure_structure_legalEstablishmentFINESS: "$thisStructure.legalEstablishmentFINESS",
+		structure_legalEstablishmentFINESS: "$thisStructure.legalEstablishmentFINESS",
 		structure_structureTechnicalId: "$thisStructure.structureTechnicalId",
 		structure_legalCommercialName: "$thisStructure.legalCommercialName",
 		structure_publicCommercialName: "$thisStructure.publicCommercialName",
@@ -101,7 +101,7 @@ db.psref.aggregate([
 		structure_email: "$thisStructure.email",
 		structure_departmentCode: "$thisStructure.departmentCode",
 		structure_oldStructureId: "$thisStructure.oldStructureId",
-		structure_registrationAuthority: "$thisStructure.registrationAuthority",
+		structure_registrationAuthority: "$thisPs.professions.workSituations.registrationAuthority",
 		otherIds: "$thisOtherIds.otherIds"
 		}
 	},
