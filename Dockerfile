@@ -12,7 +12,7 @@ RUN echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/arti
     && wget -qO - http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/www.mongodb.org/static/pgp/server-5.0.asc | apt-key add - \
     && echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian-repo.mongodb.org buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
 RUN apt update
-RUN apt install -y mongodb-database-tools mongodb-mongosh
+RUN apt install -y mongodb-database-tools mongodb-mongosh=1.1.9
 COPY --from=build /usr/src/app/target/pscextract-*.jar /usr/app/pscextract.jar
 RUN mkdir -p /app/extract-repo && mkdir -p /app/resources
 COPY --from=build /usr/src/app/src/main/resources/aggregate.mongo /app/resources/
