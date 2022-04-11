@@ -101,7 +101,7 @@ db.psref.aggregate([
 		structure_email: "$thisStructure.email",
 		structure_departmentCode: "$thisStructure.departmentCode",
 		structure_oldStructureId: "$thisStructure.oldStructureId",
-		structure_registrationAuthority: "$thisPs.professions.workSituations.registrationAuthority",
+		profession_situation_registrationAuthority: "$thisPs.professions.workSituations.registrationAuthority",
 		otherIds: "$thisOtherIds.otherIds"
 		}
 	},
