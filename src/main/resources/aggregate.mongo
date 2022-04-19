@@ -35,6 +35,13 @@ db.psref.aggregate([
 	{$unwind: {path: "$thisPs.professions.expertises", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path: "$thisPs.professions.workSituations", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path: "$thisPs.professions.workSituations.structure", preserveNullAndEmptyArrays: true}},
+	{$lookup: {
+    		from:"extractOtherIds",
+    		localField:"nationalId",
+    		foreignField:"_id",
+    		as:"thisOtherIds"
+    		}
+    },
 	{$unwind: {path: "$thisOtherIds", preserveNullAndEmptyArrays: true}},
 	{$project: {
 		_id: 0,
