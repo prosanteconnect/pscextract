@@ -63,7 +63,7 @@ db.psref.aggregate([
 		profession_salutationCode: "$thisPs.professions.salutationCode",
 		profession_lastName: "$thisPs.professions.lastName",
 		profession_firstName: "$thisPs.professions.firstName",
-		profession_expertise_categoryCode: "$thisPs.professions.expertises.typeCode",
+		profession_expertise_typeCode: "$thisPs.professions.expertises.typeCode",
 		profession_expertise_code: "$thisPs.professions.expertises.code",
 		profession_situation_modeCode: "$thisPs.professions.workSituations.modeCode",
 		profession_situation_activitySectorCode: "$thisPs.professions.workSituations.activitySectorCode",
