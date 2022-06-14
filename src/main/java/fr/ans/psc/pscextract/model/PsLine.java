@@ -51,7 +51,6 @@ public class PsLine {
     String structure_departmentCode;
     String structure_oldStructureId;
     String profession_situation_registrationAuthority;
-    String profession_situation_activityKindCode;
     String otherIds;
-
+    String profession_situation_activityKindCode;
 }
