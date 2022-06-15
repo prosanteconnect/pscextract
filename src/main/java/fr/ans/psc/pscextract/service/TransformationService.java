@@ -74,7 +74,7 @@ public class TransformationService {
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|" +
-                "Code genre Activité\n";
+                "Code genre Activité|\n";
 
         bw.write(header);
         setExtractionTime();
