@@ -76,7 +76,9 @@ public class TransformationService {
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|" +
                 "Code genre Activité|\n";
 
+        log.info("step 1");
         bw.write(header);
+        log.info("step 2");
         setExtractionTime();
 
         // ObjectRowProcessor converts the parsed values and gives you the resulting row.
@@ -102,7 +104,9 @@ public class TransformationService {
         CsvParser parser = new CsvParser(parserSettings);
 
         try {
+            log.info("step 3");
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
+            log.info("step 4");
             bw.close();
             InputStream fileContent = new FileInputStream(tempExtractFile);
 
