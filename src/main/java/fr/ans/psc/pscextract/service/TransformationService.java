@@ -133,6 +133,9 @@ public class TransformationService {
         } catch (IOException ioe) {
             log.error("could not put zip entry in zip output stream");
             throw ioe;
+        } catch (Exception e) {
+            log.info("here");
+            e.printStackTrace();
         }
 
     }
