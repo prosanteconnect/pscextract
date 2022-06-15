@@ -76,9 +76,7 @@ public class TransformationService {
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|" +
                 "Code genre Activité|\n";
 
-        log.info("step 1");
         bw.write(header);
-        log.info("step 2");
         setExtractionTime();
 
         // ObjectRowProcessor converts the parsed values and gives you the resulting row.
@@ -104,9 +102,7 @@ public class TransformationService {
         CsvParser parser = new CsvParser(parserSettings);
 
         try {
-            log.info("step 3");
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
-            log.info("step 4");
             bw.close();
             InputStream fileContent = new FileInputStream(tempExtractFile);
 
@@ -134,21 +130,21 @@ public class TransformationService {
             log.error("could not put zip entry in zip output stream");
             throw ioe;
         } catch (Exception e) {
-            log.info("here");
+            log.info("unexpected exception raised, see stderr");
             e.printStackTrace();
         }
 
     }
 
-    private String[] getLineArray(Object[] objects) {
+    public String[] getLineArray(Object[] objects) {
         String[] lineArr = Arrays.asList(objects).toArray(new String[objects.length]);
         lineArr[0] = String.valueOf(lineArr[2].charAt(0)); // first number of nationalId
         lineArr[1] = lineArr[2].substring(1);              // nationalId without first number
-        String[] linkElementArr = lineArr[lineArr.length - 1].trim().split(" ");  // last element split to array
+        String[] linkElementArr = lineArr[lineArr.length - 2].trim().split(" ");  // last element split to array
         for (int i=0; i<linkElementArr.length; i++) {
             linkElementArr[i] = getLinkString(linkElementArr[i]);  // building each section
         }
-        lineArr[lineArr.length-1] = String.join(";", linkElementArr);  // putting it back together
+        lineArr[lineArr.length-2] = String.join(";", linkElementArr);  // putting it back together
         return lineArr;
     }
 
