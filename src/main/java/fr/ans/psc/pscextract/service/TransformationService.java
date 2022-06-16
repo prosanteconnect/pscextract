@@ -74,7 +74,7 @@ public class TransformationService {
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|" +
-                "Code genre Activité|\n";
+                "Code genre d'activité|\n";
 
         bw.write(header);
         setExtractionTime();
@@ -136,6 +136,7 @@ public class TransformationService {
 
     }
 
+    // TODO replace PsLine by enum w/ column positions and use it instead of magic numbers (see in pscload RassItems)
     public String[] getLineArray(Object[] objects) {
         String[] lineArr = Arrays.asList(objects).toArray(new String[objects.length]);
         lineArr[0] = String.valueOf(lineArr[2].charAt(0)); // first number of nationalId
