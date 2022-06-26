@@ -73,7 +73,8 @@ public class TransformationService {
                 "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
-                "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
+                "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|" +
+                "Code genre d'activité|\n";
 
         bw.write(header);
         setExtractionTime();
@@ -128,19 +129,22 @@ public class TransformationService {
         } catch (IOException ioe) {
             log.error("could not put zip entry in zip output stream");
             throw ioe;
+        } catch (Exception e) {
+            log.info("unexpected exception raised, see stderr");
+            e.printStackTrace();
         }
 
     }
 
-    private String[] getLineArray(Object[] objects) {
+    public String[] getLineArray(Object[] objects) {
         String[] lineArr = Arrays.asList(objects).toArray(new String[objects.length]);
         lineArr[0] = String.valueOf(lineArr[2].charAt(0)); // first number of nationalId
         lineArr[1] = lineArr[2].substring(1);              // nationalId without first number
-        String[] linkElementArr = lineArr[lineArr.length - 1].trim().split(" ");  // last element split to array
+        String[] linkElementArr = lineArr[lineArr.length - 2].trim().split(" ");  // last element split to array
         for (int i=0; i<linkElementArr.length; i++) {
             linkElementArr[i] = getLinkString(linkElementArr[i]);  // building each section
         }
-        lineArr[lineArr.length-1] = String.join(";", linkElementArr);  // putting it back together
+        lineArr[lineArr.length - 2] = String.join(";", linkElementArr);  // putting it back together
         return lineArr;
     }
 
