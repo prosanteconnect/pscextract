@@ -71,6 +71,7 @@ public class AggregationService {
                 cmd
         };
 
+        System.out.println(Arrays.toString(cmdArr));
 
         // TO DO : create custom Exception to handle  process failures
         Process p = Runtime.getRuntime().exec(cmdArr);
