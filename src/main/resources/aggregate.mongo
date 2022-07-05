@@ -62,9 +62,9 @@ db.ps.aggregate([
         "profession_situation_activityKindCode":{"$first":"$professions.workSituations.activityKindCode"},
         "otherIds":{$first:"$ids"}
     }},
-    {$addfields: { firstNamesString: {$reduce: {input: "$firstNames",
+    {$addFields: { firstNamesString: {$reduce: {input: "$firstNames",
         initialValue: "",
-        in {$concat: ["$$value", "$$this.firstName","\'"]}
+        in: {$concat: ["$$value", "$$this.firstName","\'"]}
     }}}},
 	{$project: {
         _id: 0,
