@@ -7,7 +7,7 @@ db.ps.aggregate([
 	{$unwind: {path: "$professions.workSituations", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path: "$professions.workSituations.structure", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path:"$firstNames"}},
-	{$sort: {"firstNames.order":1},
+	{$sort: {"firstNames.order":1}},
 	{$group: {
         "_id": "$_id",
         "idType":{"$first":"$idType"},
