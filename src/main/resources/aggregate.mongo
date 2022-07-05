@@ -72,7 +72,7 @@ db.ps.aggregate([
         id: "$id",
         nationalId: "$nationalIdRef",
         lastName: "$lastName",
-        firstName: {$substrCP: ["$firstNamesString",0,{$add:[{$strLenCP:"$firstNamesString"},-1]}]},
+        firstName: "test",
         dateOfBirth: "$dateOfBirth",
         birthAddressCode: "$birthAddressCode",
         birthCountryCode: "$birthCountryCode",
