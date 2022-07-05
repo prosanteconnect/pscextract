@@ -1,270 +1,124 @@
 use mongodb
 
-db.ps.aggregate([{
-                 $match: {
-                  $expr: {
-                   $gt: [
-                    '$activated',
-                    '$deactivated'
-                   ]
-                  }
-                 }
-                }, {
-                 $unwind: {
-                  path: '$professions',
-                  preserveNullAndEmptyArrays: true
-                 }
-                }, {
-                 $unwind: {
-                  path: '$professions.expertises',
-                  preserveNullAndEmptyArrays: true
-                 }
-                }, {
-                 $unwind: {
-                  path: '$professions.workSituations',
-                  preserveNullAndEmptyArrays: true
-                 }
-                }, {
-                 $unwind: {
-                  path: '$professions.workSituations.structure',
-                  preserveNullAndEmptyArrays: true
-                 }
-                }, {
-                 $unwind: {
-                  path: '$firstNames'
-                 }
-                }, {
-                 $sort: {
-                  'firstNames.order': 1
-                 }
-                }, {
-                 $group: {
-                  _id: '$_id',
-                  idType: {
-                   $first: '$idType'
-                  },
-                  id: {
-                   $first: '$id'
-                  },
-                  nationalId: {
-                   $first: '$nationalIdRef'
-                  },
-                  lastName: {
-                   $first: '$lastName'
-                  },
-                  firstNames: {
-                   $push: '$firstNames'
-                  },
-                  dateOfBirth: {
-                   $first: '$dateOfBirth'
-                  },
-                  birthAddressCode: {
-                   $first: '$birthAddressCode'
-                  },
-                  birthCountryCode: {
-                   $first: '$birthCountryCode'
-                  },
-                  birthAddress: {
-                   $first: '$birthAddress'
-                  },
-                  genderCode: {
-                   $first: '$genderCode'
-                  },
-                  phone: {
-                   $first: '$phone'
-                  },
-                  email: {
-                   $first: '$email'
-                  },
-                  salutationCode: {
-                   $first: '$salutationCode'
-                  },
-                  profession_code: {
-                   $first: '$professions.code'
-                  },
-                  profession_categoryCode: {
-                   $first: '$professions.categoryCode'
-                  },
-                  profession_salutationCode: {
-                   $first: '$professions.salutationCode'
-                  },
-                  profession_lastName: {
-                   $first: '$professions.lastName'
-                  },
-                  profession_firstName: {
-                   $first: '$professions.firstName'
-                  },
-                  profession_expertise_typeCode: {
-                   $first: '$professions.expertises.typeCode'
-                  },
-                  profession_expertise_code: {
-                   $first: '$professions.expertises.code'
-                  },
-                  profession_situation_modeCode: {
-                   $first: '$professions.workSituations.modeCode'
-                  },
-                  profession_situation_activitySectorCode: {
-                   $first: '$professions.workSituations.activitySectorCode'
-                  },
-                  profession_situation_pharmacistTableSectionCode: {
-                   $first: '$professions.workSituations.pharmacistTableSectionCode'
-                  },
-                  profession_situation_roleCode: {
-                   $first: '$professions.workSituations.roleCode'
-                  },
-                  structure_siteSIRET: {
-                   $first: '$professions.workSituations.structure.siteSIRET'
-                  },
-                  structure_siteSIREN: {
-                   $first: '$professions.workSituations.structure.siteSIREN'
-                  },
-                  structure_siteFINESS: {
-                   $first: '$professions.workSituations.structure.siteFINESS'
-                  },
-                  structure_legalEstablishmentFINESS: {
-                   $first: '$professions.workSituations.structure.legalEstablishmentFINESS'
-                  },
-                  structure_structureTechnicalId: {
-                   $first: '$professions.workSituations.structure.structureTechnicalId'
-                  },
-                  structure_legalCommercialName: {
-                   $first: '$professions.workSituations.structure.legalCommercialName'
-                  },
-                  structure_publicCommercialName: {
-                   $first: '$professions.workSituations.structure.publicCommercialName'
-                  },
-                  structure_recipientAdditionalInfo: {
-                   $first: '$professions.workSituations.structure.recipientAdditionalInfo'
-                  },
-                  structure_geoLocationAdditionalInfo: {
-                   $first: '$professions.workSituations.structure.geoLocationAdditionalInfo'
-                  },
-                  structure_streetNumber: {
-                   $first: '$professions.workSituations.structure.streetNumber'
-                  },
-                  structure_streetNumberRepetitionIndex: {
-                   $first: '$professions.workSituations.structure.streetNumberRepetitionIndex'
-                  },
-                  structure_streetCategoryCode: {
-                   $first: '$professions.workSituations.structure.streetCategoryCode'
-                  },
-                  structure_streetLabel: {
-                   $first: '$professions.workSituations.structure.streetLabel'
-                  },
-                  structure_distributionMention: {
-                   $first: '$professions.workSituations.structure.distributionMention'
-                  },
-                  structure_cedexOffice: {
-                   $first: '$professions.workSituations.structure.cedexOffice'
-                  },
-                  structure_postalCode: {
-                   $first: '$professions.workSituations.structure.postalCode'
-                  },
-                  structure_communeCode: {
-                   $first: '$professions.workSituations.structure.communeCode'
-                  },
-                  structure_countryCode: {
-                   $first: '$professions.workSituations.structure.countryCode'
-                  },
-                  structure_phone: {
-                   $first: '$professions.workSituations.structure.phone'
-                  },
-                  structure_phone2: {
-                   $first: '$professions.workSituations.structure.phone2'
-                  },
-                  structure_fax: {
-                   $first: '$professions.workSituations.structure.fax'
-                  },
-                  structure_email: {
-                   $first: '$professions.workSituations.structure.email'
-                  },
-                  structure_departmentCode: {
-                   $first: '$professions.workSituations.structure.departmentCode'
-                  },
-                  structure_oldStructureId: {
-                   $first: '$professions.workSituations.structure.oldStructureId'
-                  },
-                  profession_situation_registrationAuthority: {
-                   $first: '$professions.workSituations.registrationAuthority'
-                  },
-                  profession_situation_activityKindCode: {
-                   $first: '$professions.workSituations.activityKindCode'
-                  },
-                  otherIds: {
-                   $first: '$ids'
-                  }
-                 }
-                }, {
-                 $addFields: {
-                  firstNamesString: {
-                   $reduce: {
-                    input: '$firstNames',
-                    initialValue: '',
-                    'in': {
-                     $concat: [
-                      '$$value',
-                      '$$this.firstName',
-                      '\''
-                     ]
-                    }
-                   }
-                  }
-                 }
-                }, {
-                 $project: {
-                  _id: 0,
-                  idType: '$idType',
-                  id: '$id',
-                  nationalId: '$nationalIdRef',
-                  lastName: '$lastName',
-                  firstName: 'test',
-                  dateOfBirth: '$dateOfBirth',
-                  birthAddressCode: '$birthAddressCode',
-                  birthCountryCode: '$birthCountryCode',
-                  birthAddress: '$birthAddress',
-                  genderCode: '$genderCode',
-                  phone: '$phone',
-                  email: '$email',
-                  salutationCode: '$salutationCode',
-                  profession_code: '$profession_code',
-                  profession_categoryCode: '$profession_categoryCode',
-                  profession_salutationCode: '$profession_salutationCode',
-                  profession_lastName: '$profession_lastName',
-                  profession_firstName: '$profession_firstName',
-                  profession_expertise_typeCode: '$profession_expertise_typeCode',
-                  profession_expertise_code: '$profession_expertise_code',
-                  profession_situation_modeCode: '$profession_situation_modeCode',
-                  profession_situation_activitySectorCode: '$profession_situation_activitySectorCode',
-                  profession_situation_pharmacistTableSectionCode: '$profession_situation_pharmacistTableSectionCode',
-                  profession_situation_roleCode: '$profession_situation_roleCode',
-                  structure_siteSIRET: '$structure_siteSIRET',
-                  structure_siteSIREN: '$structure_siteSIREN',
-                  structure_siteFINESS: '$structure_siteFINESS',
-                  structure_legalEstablishmentFINESS: '$structure_legalEstablishmentFINESS',
-                  structure_structureTechnicalId: '$structure_structureTechnicalId',
-                  structure_legalCommercialName: '$structure_legalCommercialName',
-                  structure_publicCommercialName: '$structure_publicCommercialName',
-                  structure_recipientAdditionalInfo: '$structure_recipientAdditionalInfo',
-                  structure_geoLocationAdditionalInfo: '$structure_geoLocationAdditionalInfo',
-                  structure_streetNumber: '$structure_streetNumber',
-                  structure_streetNumberRepetitionIndex: '$structure_streetNumberRepetitionIndex',
-                  structure_streetCategoryCode: '$structure_streetCategoryCode',
-                  structure_streetLabel: '$structure_streetLabel',
-                  structure_distributionMention: '$structure_distributionMention',
-                  structure_cedexOffice: '$structure_cedexOffice',
-                  structure_postalCode: '$structure_postalCode',
-                  structure_communeCode: '$structure_communeCode',
-                  structure_countryCode: '$structure_countryCode',
-                  structure_phone: '$structure_phone',
-                  structure_phone2: '$structure_phone2',
-                  structure_fax: '$structure_fax',
-                  structure_email: '$structure_email',
-                  structure_departmentCode: '$structure_departmentCode',
-                  structure_oldStructureId: '$structure_oldStructureId',
-                  profession_situation_registrationAuthority: '$profession_situation_registrationAuthority',
-                  profession_situation_activityKindCode: '$profession_situation_activityKindCode',
-                  otherIds: 'test'
-                 }
-                }, {
-                 $out: 'extractRass'
-                }], {allowDiskUse: true})
+db.ps.aggregate([
+	{$match: {$expr: {$gt: ['$activated', '$deactivated']}}},
+    {$unwind: {path: "$professions", preserveNullAndEmptyArrays: true}},
+	{$unwind: {path: "$professions.expertises", preserveNullAndEmptyArrays: true}},
+	{$unwind: {path: "$professions.workSituations", preserveNullAndEmptyArrays: true}},
+	{$unwind: {path: "$professions.workSituations.structure", preserveNullAndEmptyArrays: true}},
+	{$unwind: {path:"$firstNames"}},
+	{$sort: {"firstNames.order":1},
+	{$group: {
+        "_id": "$_id",
+        "idType":{"$first":"$idType"},
+        "id":{"$first":"$id"},
+        "nationalId":{"$first":"$nationalIdRef"},
+        "lastName":{"$first":"$lastName"},
+        "firstNames": {$push: "$firstNames"},
+        "dateOfBirth":{"$first":"$dateOfBirth"},
+        "birthAddressCode":{"$first":"$birthAddressCode"},
+        "birthCountryCode":{"$first":"$birthCountryCode"},
+        "birthAddress":{"$first":"$birthAddress"},
+        "genderCode":{"$first":"$genderCode"},
+        "phone":{"$first":"$phone"},
+        "email":{"$first":"$email"},
+        "salutationCode":{"$first":"$salutationCode"},
+        "profession_code":{"$first":"$professions.code"},
+        "profession_categoryCode":{"$first":"$professions.categoryCode"},
+        "profession_salutationCode":{"$first":"$professions.salutationCode"},
+        "profession_lastName":{"$first":"$professions.lastName"},
+        "profession_firstName":{"$first":"$professions.firstName"},
+        "profession_expertise_typeCode":{"$first":"$professions.expertises.typeCode"},
+        "profession_expertise_code":{"$first":"$professions.expertises.code"},
+        "profession_situation_modeCode":{"$first":"$professions.workSituations.modeCode"},
+        "profession_situation_activitySectorCode":{"$first":"$professions.workSituations.activitySectorCode"},
+        "profession_situation_pharmacistTableSectionCode":{"$first":"$professions.workSituations.pharmacistTableSectionCode"},
+        "profession_situation_roleCode":{"$first":"$professions.workSituations.roleCode"},
+        "structure_siteSIRET":{"$first":"$professions.workSituations.structure.siteSIRET"},
+        "structure_siteSIREN":{"$first":"$professions.workSituations.structure.siteSIREN"},
+        "structure_siteFINESS":{"$first":"$professions.workSituations.structure.siteFINESS"},
+        "structure_legalEstablishmentFINESS":{"$first":"$professions.workSituations.structure.legalEstablishmentFINESS"},
+        "structure_structureTechnicalId":{"$first":"$professions.workSituations.structure.structureTechnicalId"},
+        "structure_legalCommercialName":{"$first":"$professions.workSituations.structure.legalCommercialName"},
+        "structure_publicCommercialName":{"$first":"$professions.workSituations.structure.publicCommercialName"},
+        "structure_recipientAdditionalInfo":{"$first":"$professions.workSituations.structure.recipientAdditionalInfo"},
+        "structure_geoLocationAdditionalInfo":{"$first":"$professions.workSituations.structure.geoLocationAdditionalInfo"},
+        "structure_streetNumber":{"$first":"$professions.workSituations.structure.streetNumber"},
+        "structure_streetNumberRepetitionIndex":{"$first":"$professions.workSituations.structure.streetNumberRepetitionIndex"},
+        "structure_streetCategoryCode":{"$first":"$professions.workSituations.structure.streetCategoryCode"},
+        "structure_streetLabel":{"$first":"$professions.workSituations.structure.streetLabel"},
+        "structure_distributionMention":{"$first":"$professions.workSituations.structure.distributionMention"},
+        "structure_cedexOffice":{"$first":"$professions.workSituations.structure.cedexOffice"},
+        "structure_postalCode":{"$first":"$professions.workSituations.structure.postalCode"},
+        "structure_communeCode":{"$first":"$professions.workSituations.structure.communeCode"},
+        "structure_countryCode":{"$first":"$professions.workSituations.structure.countryCode"},
+        "structure_phone":{"$first":"$professions.workSituations.structure.phone"},
+        "structure_phone2":{"$first":"$professions.workSituations.structure.phone2"},
+        "structure_fax":{"$first":"$professions.workSituations.structure.fax"},
+        "structure_email":{"$first":"$professions.workSituations.structure.email"},
+        "structure_departmentCode":{"$first":"$professions.workSituations.structure.departmentCode"},
+        "structure_oldStructureId":{"$first":"$professions.workSituations.structure.oldStructureId"},
+        "profession_situation_registrationAuthority":{"$first":"$professions.workSituations.registrationAuthority"},
+        "profession_situation_activityKindCode":{"$first":"$professions.workSituations.activityKindCode"},
+        "otherIds":{$first:"$ids"}
+    }},
+    {$addFields: { firstNamesString: {$reduce: {input: "$firstNames",
+        initialValue: "",
+        in: {$concat: ["$$value", "$$this.firstName","\'"]}
+    }}}},
+	{$project: {
+        _id: 0,
+        idType: "$idType",
+        id: "$id",
+        nationalId: "$nationalIdRef",
+        lastName: "$lastName",
+        firstName: "test",
+        dateOfBirth: "$dateOfBirth",
+        birthAddressCode: "$birthAddressCode",
+        birthCountryCode: "$birthCountryCode",
+        birthAddress: "$birthAddress",
+        genderCode: "$genderCode",
+        phone: "$phone",
+        email: "$email",
+        salutationCode: "$salutationCode",
+        profession_code: "$profession_code",
+        profession_categoryCode: "$profession_categoryCode",
+        profession_salutationCode: "$profession_salutationCode",
+        profession_lastName: "$profession_lastName",
+        profession_firstName: "$profession_firstName",
+        profession_expertise_typeCode: "$profession_expertise_typeCode",
+        profession_expertise_code: "$profession_expertise_code",
+        profession_situation_modeCode: "$profession_situation_modeCode",
+        profession_situation_activitySectorCode: "$profession_situation_activitySectorCode",
+        profession_situation_pharmacistTableSectionCode: "$profession_situation_pharmacistTableSectionCode",
+        profession_situation_roleCode: "$profession_situation_roleCode",
+        structure_siteSIRET: "$structure_siteSIRET",
+        structure_siteSIREN: "$structure_siteSIREN",
+        structure_siteFINESS: "$structure_siteFINESS",
+        structure_legalEstablishmentFINESS: "$structure_legalEstablishmentFINESS",
+        structure_structureTechnicalId: "$structure_structureTechnicalId",
+        structure_legalCommercialName: "$structure_legalCommercialName",
+        structure_publicCommercialName: "$structure_publicCommercialName",
+        structure_recipientAdditionalInfo: "$structure_recipientAdditionalInfo",
+        structure_geoLocationAdditionalInfo: "$structure_geoLocationAdditionalInfo",
+        structure_streetNumber: "$structure_streetNumber",
+        structure_streetNumberRepetitionIndex: "$structure_streetNumberRepetitionIndex",
+        structure_streetCategoryCode: "$structure_streetCategoryCode",
+        structure_streetLabel: "$structure_streetLabel",
+        structure_distributionMention: "$structure_distributionMention",
+        structure_cedexOffice: "$structure_cedexOffice",
+        structure_postalCode: "$structure_postalCode",
+        structure_communeCode: "$structure_communeCode",
+        structure_countryCode: "$structure_countryCode",
+        structure_phone: "$structure_phone",
+        structure_phone2: "$structure_phone2",
+        structure_fax: "$structure_fax",
+        structure_email: "$structure_email",
+        structure_departmentCode: "$structure_departmentCode",
+        structure_oldStructureId: "$structure_oldStructureId",
+        profession_situation_registrationAuthority: "$profession_situation_registrationAuthority",
+        profession_situation_activityKindCode: "$profession_situation_activityKindCode",
+        otherIds: {$reduce: {input: "$otherIds", initialValue: "", in: {$concat: ["$$value"," ","$$this"]}}}
+    }},
+	{$out :"extractRass"}
+], {allowDiskUse: true})
