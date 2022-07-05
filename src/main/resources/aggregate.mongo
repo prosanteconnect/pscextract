@@ -1,6 +1,6 @@
 use mongodb
 
-db.psref.aggregate([
+db.ps.aggregate([
 	{$match: {$expr: {$gt: ['$activated', '$deactivated']}}},
     {$unwind: {path: "$professions", preserveNullAndEmptyArrays: true}},
 	{$unwind: {path: "$professions.expertises", preserveNullAndEmptyArrays: true}},
