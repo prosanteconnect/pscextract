@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,7 +90,7 @@ public class TransformationService {
         ObjectRowProcessor rowProcessor = new ObjectRowProcessor() {
             @Override
             public void rowProcessed(Object[] objects, ParsingContext parsingContext) {
-                log.info("Object array: {}", objects.toString());
+                log.info("Object array: {}", Arrays.toString(objects));
                 String line = String.join("|", getLineArray(objects)) + "|\n";
                 log.info("Line created : {}", line);
                 try {
