@@ -158,6 +158,7 @@ public class TransformationService {
 
     private String[] getLineArray(Object[] objects) {
         String[] lineArr = Arrays.asList(objects).toArray(new String[objects.length]);
+        log.info("Line array created {}", Arrays.toString(lineArr));
         lineArr[0] = String.valueOf(lineArr[2].charAt(0)); // first number of nationalId
         lineArr[1] = lineArr[2].substring(1);              // nationalId without first number
         String[] linkElementArr = lineArr[lineArr.length - 1].trim().split(" ");  // last element split to array
