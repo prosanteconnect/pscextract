@@ -82,5 +82,6 @@ db.ps.aggregate([
         structure_oldStructureId: "$professions.workSituations.structure.oldStructureId",
         profession_situation_registrationAuthority: "$professions.workSituations.registrationAuthority",
         profession_situation_activityKindCode: "$professions.workSituations.activityKindCode",
+    }},
     {$out :"extractRass"}
 ], {allowDiskUse: true})
