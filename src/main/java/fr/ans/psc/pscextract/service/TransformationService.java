@@ -90,6 +90,7 @@ public class TransformationService {
             @Override
             public void rowProcessed(Object[] objects, ParsingContext parsingContext) {
                 String line = String.join("|", getLineArray(objects)) + "|\n";
+                log.info("Line created : {}", line);
                 try {
                     bw.write(line);
                     log.info("Line written: {}", line);
