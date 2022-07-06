@@ -114,8 +114,11 @@ public class TransformationService {
         log.info("CsvParser created");
 
         try {
+            log.info("Parsing file");
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
+            log.info("File parsed");
             bw.close();
+            log.info("BufferedWriter closed");
             InputStream fileContent = new FileInputStream(tempExtractFile);
             log.info("File content read");
 

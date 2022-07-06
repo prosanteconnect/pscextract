@@ -61,6 +61,7 @@ public class AggregationService {
             log.error("Dos2Unix failed : code retour = {}", dos2Unix.exitValue());
             throw new RuntimeException("Dos2Unix failed");
         }
+        log.info("Dos2Unix success");
 
         String cmd = "/usr/bin/mongosh --host=" + mongoHost + " --port=" + mongoPort + " --username=" + mongoUserName + " --password=" + mongoPassword
                 + " --authenticationDatabase=" + mongoAdminDatabase + " " + mongodbName + " < /app/resources/aggregate.mongo";
@@ -70,6 +71,8 @@ public class AggregationService {
                 "-c",
                 cmd
         };
+
+        log.info("Executing command : {}", Arrays.toString(cmdArr));
 
         // TO DO : create custom Exception to handle  process failures
         Process p = Runtime.getRuntime().exec(cmdArr);
