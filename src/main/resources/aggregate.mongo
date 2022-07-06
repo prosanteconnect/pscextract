@@ -8,7 +8,7 @@ db.ps.aggregate([
         "_id": "$_id",
         "idType":{"$first":"$idType"},
         "id":{"$first":"$id"},
-        "nationalId":{"$first":"$nationalIdRef"},
+        "nationalId":{"$first":"$nationalId"},
         "lastName":{"$first":"$lastName"},
         "firstNames": {$push: "$firstNames"},
         "dateOfBirth":{"$first":"$dateOfBirth"},
