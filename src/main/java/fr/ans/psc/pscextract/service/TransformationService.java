@@ -57,7 +57,10 @@ public class TransformationService {
     public void transformCsv() throws IOException {
         log.info("starting file transformation");
         File tempExtractFile = File.createTempFile("tempExtract", "tmp");
+        log.info("File extracted in {}", tempExtractFile.getAbsolutePath());
+
         BufferedWriter bw = Files.newBufferedWriter(tempExtractFile.toPath(), StandardCharsets.UTF_8);
+        log.info("BufferedWriter created");
 
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
                 "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
@@ -74,9 +77,13 @@ public class TransformationService {
                 "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
                 "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
                 "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
+        log.info("Header created");
 
         bw.write(header);
+        log.info("Header written");
+
         setExtractionTime();
+        log.info("Extraction time set");
 
         // ObjectRowProcessor converts the parsed values and gives you the resulting row.
         ObjectRowProcessor rowProcessor = new ObjectRowProcessor() {
@@ -85,41 +92,51 @@ public class TransformationService {
                 String line = String.join("|", getLineArray(objects)) + "|\n";
                 try {
                     bw.write(line);
+                    log.info("Line written: {}", line);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         };
+        log.info("RowProcessor created");
 
         CsvParserSettings parserSettings = new CsvParserSettings();
+        log.info("CsvParserSettings created");
+
         parserSettings.getFormat().setLineSeparator("\n");
         parserSettings.getFormat().setDelimiter(',');
         parserSettings.setProcessor(rowProcessor);
         parserSettings.setHeaderExtractionEnabled(true);
         parserSettings.setNullValue("");
+        log.info("CsvParserSettings configured");
 
         CsvParser parser = new CsvParser(parserSettings);
+        log.info("CsvParser created");
 
         try {
             parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
             bw.close();
             InputStream fileContent = new FileInputStream(tempExtractFile);
+            log.info("File content read");
 
             ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(TXT_EXTENSION));
             zipEntry.setTime(System.currentTimeMillis());
             ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
             zos.putNextEntry(zipEntry);
             StreamUtils.copy(fileContent, zos);
+            log.info("File content written in zip file");
 
             fileContent.close();
             zos.closeEntry();
             zos.finish();
             zos.close();
+            log.info("Zip file created");
 
             Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
                     Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
 
             tempExtractFile.delete();
+            log.info("Temp file deleted");
 
             log.info("transformation complete!");
         } catch (FileNotFoundException e) {
