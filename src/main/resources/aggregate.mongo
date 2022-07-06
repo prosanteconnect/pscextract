@@ -86,3 +86,5 @@ db.ps.aggregate([
     }},
     {$out :"extractRass"}
 ], {allowDiskUse: true})
+
+quit()
