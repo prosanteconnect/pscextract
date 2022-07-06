@@ -81,8 +81,6 @@ db.ps.aggregate([
         structure_departmentCode: "$professions.workSituations.structure.departmentCode",
         structure_oldStructureId: "$professions.workSituations.structure.oldStructureId",
         profession_situation_registrationAuthority: "$professions.workSituations.registrationAuthority",
-        profession_situation_activityKindCode: "$professions.workSituations.activityKindCode",    
-        otherIds: {$reduce: {input: "$otherIds", initialValue: "", in: {$concat: ["$$value"," ","$$this"]}}}
-    }},
+        profession_situation_activityKindCode: "$professions.workSituations.activityKindCode",
     {$out :"extractRass"}
 ], {allowDiskUse: true})
