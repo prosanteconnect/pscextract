@@ -89,6 +89,7 @@ public class TransformationService {
         ObjectRowProcessor rowProcessor = new ObjectRowProcessor() {
             @Override
             public void rowProcessed(Object[] objects, ParsingContext parsingContext) {
+                log.info("Object array: {}", objects.toString());
                 String line = String.join("|", getLineArray(objects)) + "|\n";
                 log.info("Line created : {}", line);
                 try {
