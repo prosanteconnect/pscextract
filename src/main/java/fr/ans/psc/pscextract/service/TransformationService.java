@@ -115,7 +115,11 @@ public class TransformationService {
 
         try {
             log.info("Parsing file");
-            parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
+            try {
+                parser.parse(new BufferedReader(new FileReader(FileNamesUtil.getFilePath(filesDirectory, extractName))));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             log.info("File parsed");
             bw.close();
             log.info("BufferedWriter closed");
