@@ -1,7 +1,6 @@
 use mongodb
 
 db.ps.aggregate([
-    {$match: {id: '759308083' }},
     {$match: {$expr: {$gt: ['$activated', '$deactivated']}}},
     {$unwind: {path:"$firstNames"}},
     {$sort: {"firstNames.order":1}},
