@@ -139,7 +139,6 @@ public class TransformationService {
         String[] linkElementArr = lineArr[lineArr.length - 1].trim().split(" ");  // last element split to array
         for (int i=0; i<linkElementArr.length; i++) {
             linkElementArr[i] = getLinkString(linkElementArr[i]);  // building each section
-            log.info(linkElementArr[i]);
         }
         lineArr[lineArr.length-1] = String.join(";", linkElementArr);  // putting it back together
         return lineArr;
