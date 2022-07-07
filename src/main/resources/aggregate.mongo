@@ -87,4 +87,4 @@ db.ps.aggregate([
     {$out :"extractRass"}
 ], {allowDiskUse: true})
 
-db.killOp(db.currentOp().id)
+exit()
