@@ -88,16 +88,30 @@ db.ps.aggregate([
 ], {allowDiskUse: true})
 
 db.ps.close()
+db.ps.close()
+db.ps.close
 db.ps.close
 close()
+close()
+close
 close
 db.ps.quit()
+db.ps.quit()
+db.ps.quit
 db.ps.quit
 quit()
+quit()
+quit
 quit
 db.ps.currentOp()
+db.ps.currentOp()
+cursor.close()
 cursor.close()
 db.logout
+db.logout
+db.logout()
 db.logout()
 db.ps.logout()
+db.ps.logout()
+db.ps.logout
 db.ps.logout
