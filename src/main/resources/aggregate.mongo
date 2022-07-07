@@ -1,7 +1,4 @@
-sleep(15000)
-
 use mongodb
-
 db.ps.aggregate([
     {$match: {$expr: {$gt: ['$activated', '$deactivated']}}},
     {$unwind: {path:"$firstNames"}},
@@ -88,5 +85,5 @@ db.ps.aggregate([
     }},
     {$out :"extractRass"}
 ], {allowDiskUse: true})
-
+sleep(15000)
 exit()
