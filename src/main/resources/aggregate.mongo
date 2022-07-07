@@ -84,6 +84,4 @@ db.ps.aggregate([
         otherIds: {$reduce: {input: "$otherIds", initialValue: "", in: {$concat: ["$$value"," ","$$this"]}}}
     }},
     {$out :"extractRass"}
-]);
-exit();
-quit()
+], {allowDiskUse: true});
