@@ -85,5 +85,4 @@ db.ps.aggregate([
     }},
     {$out :"extractRass"}
 ], {allowDiskUse: true})
-sleep(15000)
 exit()
