@@ -175,6 +175,16 @@ public class ExtractionController {
 
     }
 
+    @GetMapping(value = "/extract-download")
+    @ResponseBody
+    public ResponseEntity generateExtractAndGetFile() {
+        //TODO loop over sending requests to the api and receiving pages of PS objects
+        //  then pass them to the transform method
+        //  have a writer started outside of the loop that writes transformed objects
+        //  to the destnation file
+        return null;
+    }
+
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
     public String cleanAll()  {
         try {
