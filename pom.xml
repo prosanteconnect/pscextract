@@ -39,6 +39,13 @@
 			<artifactId>univocity-parsers</artifactId>
 			<version>2.9.0</version>
 		</dependency>
+
+		<dependency>
+			<groupId>fr.ans.psc</groupId>
+			<artifactId>psc-api-client</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -96,5 +103,16 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<id>psc-api-client-mvn-repo</id>
+			<url>https://github.com/prosanteconnect/psc-api-client/raw/psc-api-test-mvn-repo/</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
 
 </project>

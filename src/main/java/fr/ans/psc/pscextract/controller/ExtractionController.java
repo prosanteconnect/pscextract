@@ -1,5 +1,13 @@
 package fr.ans.psc.pscextract.controller;
 
+import fr.ans.psc.ApiClient;
+import fr.ans.psc.api.PsApi;
+import fr.ans.psc.model.Expertise;
+import fr.ans.psc.model.FirstName;
+import fr.ans.psc.model.Profession;
+import fr.ans.psc.model.Ps;
+import fr.ans.psc.model.Structure;
+import fr.ans.psc.model.WorkSituation;
 import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.EmailService;
 import fr.ans.psc.pscextract.service.ExportService;
@@ -15,21 +23,48 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 public class ExtractionController {
+
+    private final String ZIP_EXTENSION = ".zip";
+    private final String TXT_EXTENSION = ".txt";
+
+    private String extractTime ="197001010001";
+
+    @Value("${working.directory}")
+    private String workingDirectory;
+
+    PsApi psApi;
+
+    @Value("${api.base.url}")
+    private String apiBaseUrl;
 
     @Autowired
     ExportService exportService;
@@ -177,12 +212,189 @@ public class ExtractionController {
 
     @GetMapping(value = "/extract-download")
     @ResponseBody
-    public ResponseEntity generateExtractAndGetFile() {
-        //TODO loop over sending requests to the api and receiving pages of PS objects
-        //  then pass them to the transform method
-        //  have a writer started outside of the loop that writes transformed objects
-        //  to the destnation file
-        return null;
+    public ResponseEntity generateExtractAndGetFile() throws IOException {
+
+        ApiClient apiClient = new ApiClient();
+        apiClient.setBasePath(apiBaseUrl);
+        this.psApi = new PsApi(apiClient);
+
+        File tempExtractFile = File.createTempFile("tempExtract", "tmp");
+        BufferedWriter bw = Files.newBufferedWriter(tempExtractFile.toPath(), StandardCharsets.UTF_8);
+
+        String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
+        "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
+        "Téléphone (coord. correspondance)|Adresse e-mail (coord. correspondance)|Code civilité|Code profession|" +
+        "Code catégorie professionnelle|Code civilité d'exercice|Nom d'exercice|Prénom d'exercice|" +
+        "Code type savoir-faire|Code savoir-faire|Code mode exercice|Code secteur d'activité|" +
+        "Code section tableau pharmaciens|Code rôle|Numéro SIRET site|Numéro SIREN site|Numéro FINESS site|" +
+        "Numéro FINESS établissement juridique|Identifiant technique de la structure|Raison sociale site|" +
+        "Enseigne commerciale site|Complément destinataire (coord. structure)|" +
+        "Complément point géographique (coord. structure)|Numéro Voie (coord. structure)|" +
+        "Indice répétition voie (coord. structure)|Code type de voie (coord. structure)|" +
+        "Libellé Voie (coord. structure)|Mention distribution (coord. structure)|" +
+        "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
+        "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
+        "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
+        "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
+        bw.write(header);
+
+        setExtractionTime();
+
+        Integer page = 0;
+        List<Ps> tempPsList;
+
+        ResponseEntity<List<Ps>> response = psApi.getPsListByPageWithHttpInfo(page,null);
+        while(response.getStatusCode() == HttpStatus.OK){
+            tempPsList = response.getBody();
+
+            for(Ps ps : tempPsList){
+                bw.write(transformPsToLine(ps));
+            }
+            page++;
+            psApi.getPsListByPage(page);
+        }
+
+        InputStream fileContent = new FileInputStream(tempExtractFile);
+        log.info("File content read");
+
+        ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(TXT_EXTENSION));
+        zipEntry.setTime(System.currentTimeMillis());
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+        zos.putNextEntry(zipEntry);
+        StreamUtils.copy(fileContent, zos);
+
+        fileContent.close();
+        zos.closeEntry();
+        zos.finish();
+        zos.close();
+
+        tempExtractFile.delete();
+
+        Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
+                Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+
+        File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+
+        FileSystemResource resource = new FileSystemResource(extractFile);
+
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + tempExtractFile.getName());
+        responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+        responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(tempExtractFile.length()));
+
+        return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
+    }
+
+    private String transformPsToLine(Ps ps) {
+        Profession profession = ps.getProfessions().get(0);
+        Expertise expertise = profession.getExpertises().get(0);
+        WorkSituation workSituation = profession.getWorkSituations().get(0);
+        Structure structure = workSituation.getStructure();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(ps.getIdType()).append("|");
+        sb.append(ps.getId()).append("|");
+        sb.append(ps.getNationalId()).append("|");
+        sb.append(ps.getLastName()).append("|");
+        sb.append(transformFirstNamesToString(ps.getFirstNames())).append("|");
+        sb.append(ps.getDateOfBirth()).append("|");
+        sb.append(ps.getBirthAddressCode()).append("|");
+        sb.append(ps.getBirthCountryCode()).append("|");
+        sb.append(ps.getBirthAddress()).append("|");
+        sb.append(ps.getGenderCode()).append("|");
+        sb.append(ps.getPhone()).append("|");
+        sb.append(ps.getEmail()).append("|");
+        sb.append(ps.getSalutationCode()).append("|");
+        sb.append(profession.getCode()).append("|");
+        sb.append(profession.getCategoryCode()).append("|");
+        sb.append(profession.getSalutationCode()).append("|");
+        sb.append(profession.getLastName()).append("|");
+        sb.append(profession.getFirstName()).append("|");
+        sb.append(expertise.getTypeCode()).append("|");
+        sb.append(expertise.getCode()).append("|");
+        sb.append(workSituation.getModeCode()).append("|");
+        sb.append(workSituation.getActivitySectorCode()).append("|");
+        sb.append(workSituation.getPharmacistTableSectionCode()).append("|");
+        sb.append(workSituation.getRoleCode()).append("|");
+        sb.append(structure.getSiteSIRET()).append("|");
+        sb.append(structure.getSiteSIREN()).append("|");
+        sb.append(structure.getSiteFINESS()).append("|");
+        sb.append(structure.getLegalEstablishmentFINESS()).append("|");
+        sb.append(structure.getStructureTechnicalId()).append("|");
+        sb.append(structure.getLegalCommercialName()).append("|");
+        sb.append(structure.getPublicCommercialName()).append("|");
+        sb.append(structure.getRecipientAdditionalInfo()).append("|");
+        sb.append(structure.getGeoLocationAdditionalInfo()).append("|");
+        sb.append(structure.getStreetNumber()).append("|");
+        sb.append(structure.getStreetNumberRepetitionIndex()).append("|");
+        sb.append(structure.getStreetCategoryCode()).append("|");
+        sb.append(structure.getStreetLabel()).append("|");
+        sb.append(structure.getDistributionMention()).append("|");
+        sb.append(structure.getCedexOffice()).append("|");
+        sb.append(structure.getPostalCode()).append("|");
+        sb.append(structure.getCommuneCode()).append("|");
+        sb.append(structure.getCountryCode()).append("|");
+        sb.append(structure.getPhone()).append("|");
+        sb.append(structure.getPhone2()).append("|");
+        sb.append(structure.getFax()).append("|");
+        sb.append(structure.getEmail()).append("|");
+        sb.append(structure.getDepartmentCode()).append("|");
+        sb.append(structure.getOldStructureId()).append("|");
+        sb.append(workSituation.getRegistrationAuthority()).append("|");
+        sb.append(workSituation.getActivityKindCode()).append("|");
+        sb.append(transformIdsToString(ps.getIds())).append("|");
+
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    public String getFileNameWithExtension(String fileExtension) {
+        return extractName + "_" + extractTime + fileExtension;
+    }
+
+    private String transformFirstNamesToString(List<FirstName> firstNames){
+        firstNames.sort(Comparator.comparing(FirstName::getOrder));
+        StringBuilder sb = new StringBuilder();
+        for(FirstName firstName : firstNames){
+            sb.append(firstName.getFirstName()).append(" ");
+        }
+        return sb.toString();
+    }
+
+    private String transformIdsToString(List<String> ids) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            sb.append(getLinkString(ids.get(i)));
+            if (i != ids.size() - 1) {
+                sb.append(";");
+            }
+        }
+        return sb.toString();
+    }
+
+    private String getLinkString(String id) {
+        switch (id.charAt(0)) {
+            case ('1'):
+                // if (s.charAt(1) == '0') return s+','+"MSSante"+','+'1';
+                return id + ',' + "ADELI" + ',' + '1';
+            case ('3'):
+                return id + ',' + "FINESS" + ',' + '1';
+            case ('4'):
+                return id + ',' + "SIREN" + ',' + '1';
+            case ('5'):
+                return id + ',' + "SIRET" + ',' + '1';
+            case ('6'):
+            case ('8'):
+                return id + ',' + "RPPS" + ',' + '1';
+            default:
+                return id + ',' + "ADELI" + ',' + '1';
+        }
+    }
+
+    private void setExtractionTime() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        LocalDateTime now = LocalDateTime.now();
+        extractTime = dtf.format(now);
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
