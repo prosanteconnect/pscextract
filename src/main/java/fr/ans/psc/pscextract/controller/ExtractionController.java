@@ -217,9 +217,11 @@ public class ExtractionController {
         ApiClient apiClient = new ApiClient();
         apiClient.setBasePath(apiBaseUrl);
         this.psApi = new PsApi(apiClient);
+        log.info("api client created");
 
         File tempExtractFile = File.createTempFile("tempExtract", "tmp");
         BufferedWriter bw = Files.newBufferedWriter(tempExtractFile.toPath(), StandardCharsets.UTF_8);
+        log.info("temp extract file created");
 
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
         "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
@@ -237,13 +239,18 @@ public class ExtractionController {
         "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
         "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
         bw.write(header);
+        log.info("header written");
+
 
         setExtractionTime();
 
         Integer page = 0;
         List<Ps> tempPsList;
 
+        log.info("starting extraction");
         ResponseEntity<List<Ps>> response = psApi.getPsListByPageWithHttpInfo(page,null);
+        log.info("response received");
+
         while(response.getStatusCode() == HttpStatus.OK){
             tempPsList = response.getBody();
 
