@@ -247,7 +247,7 @@ public class ExtractionController {
         Integer page = 0;
         List<Ps> tempPsList;
 
-        log.info("starting extraction");
+        log.info("starting extraction with "+psApi.toString());
         ResponseEntity<List<Ps>> response = psApi.getPsListByPageWithHttpInfo(page,null);
         log.info("response received");
 
