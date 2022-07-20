@@ -63,7 +63,7 @@ public class ExtractionController {
 
     PsApi psApi;
 
-    @Value("http://localhost:8080/api")
+    @Value("wrongurl")
     private String apiBaseUrl;
 
     @Autowired
