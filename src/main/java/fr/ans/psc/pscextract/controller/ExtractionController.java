@@ -41,7 +41,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -249,11 +248,11 @@ public class ExtractionController {
         List<Ps> tempPsList;
 
         log.info("starting extraction on "+apiBaseUrl);
-        ResponseEntity<Ps> response = psApi.getPsListByPageWithHttpInfo(page,null);
+        ResponseEntity<List<Ps>> response = psApi.getPsListByPageWithHttpInfo(page,null);
         log.info("response received");
 
         while(response.getStatusCode() == HttpStatus.OK){
-            tempPsList = Arrays.asList(response.getBody());
+            tempPsList = response.getBody();
 
             for(Ps ps : tempPsList){
                 bw.write(transformPsToLine(ps));
