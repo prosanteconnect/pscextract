@@ -63,7 +63,7 @@ public class ExtractionController {
 
     PsApi psApi;
 
-    @Value("http://psc-api-maj.internal:9999/psc-api-maj/api")
+    @Value("http://localhost:8080/api")
     private String apiBaseUrl;
 
     @Autowired
