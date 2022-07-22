@@ -12,6 +12,7 @@ import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.EmailService;
 import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
+import fr.ans.psc.pscextract.service.utils.CloneUtil;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.io.BufferedWriter;
@@ -36,11 +38,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -63,7 +68,7 @@ public class ExtractionController {
 
     PsApi psApi;
 
-    @Value("http://localhost:8080/api")
+    @Value("${api.base.url}")
     private String apiBaseUrl;
 
     @Autowired
@@ -248,18 +253,34 @@ public class ExtractionController {
         List<Ps> tempPsList;
 
         log.info("starting extraction on "+apiBaseUrl);
-        ResponseEntity<List<Ps>> response = psApi.getPsListByPageWithHttpInfo(page,null);
-        log.info("response received");
 
-        while(response.getStatusCode() == HttpStatus.OK){
-            tempPsList = response.getBody();
+        try {
+            List<Ps> response = psApi.getPsByPage(BigDecimal.valueOf(page));
+            log.info("response received");
+            Boolean outOfPages = false;
 
-            for(Ps ps : tempPsList){
-                bw.write(transformPsToLine(ps));
-            }
-            page++;
-            psApi.getPsListByPage(page);
+            do {
+                tempPsList = response;
+                tempPsList = unwind(tempPsList);
+
+                for (Ps ps : tempPsList) {
+                    bw.write(transformPsToLine(ps));
+                }
+                page++;
+                try {
+                    psApi.getPsByPage(BigDecimal.valueOf(page));
+                }catch( RestClientException e ){
+                    log.warn("Out of pages: "+e.getMessage());
+                    outOfPages = true;
+                }
+                } while ( !outOfPages );
+        }catch (RestClientException e) {
+            log.error("No pages :", e);
         }
+        finally {
+            bw.close();
+        }
+
 
         InputStream fileContent = new FileInputStream(tempExtractFile);
         log.info("File content read");
@@ -291,6 +312,25 @@ public class ExtractionController {
 
         return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
     }
+
+    private ArrayList<Ps> unwind(List<Ps> psList){
+        ArrayList<Ps> unwoundPsList = new ArrayList<>();
+        Ps tempPs;
+        for(Ps ps : psList){
+            if (ps.getDeactivated()==null || ps.getActivated() > ps.getDeactivated()) {
+                for (Profession profession : ps.getProfessions()) {
+                    for (Expertise expertise : profession.getExpertises()) {
+                        for (WorkSituation workSituation : profession.getWorkSituations()) {
+                            tempPs = CloneUtil.clonePs(ps,profession,expertise,workSituation);
+                            unwoundPsList.add(tempPs);
+                        }
+                    }
+                }
+            }
+        }
+        return unwoundPsList;
+    }
+
 
     private String transformPsToLine(Ps ps) {
         Profession profession = ps.getProfessions().get(0);
