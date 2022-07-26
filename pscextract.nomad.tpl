@@ -99,6 +99,8 @@ mongodb.password={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_pas
 mongodb.admin.database=admin
 files.directory=/app/extract-repo
 working.directory=/app/extract-repo/working-directory
+api.base.url=http://localhost:8080/psc-api-maj/api
+
 extract.name=Extraction_Pro_sante_connect
 extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule.zip
 server.servlet.context-path=/pscextract/v1
