@@ -47,6 +47,9 @@ class ExtractionControllerTests {
   static void registerPgProperties(DynamicPropertyRegistry propertiesRegistry) {
     propertiesRegistry.add("api.base.url",
             () -> httpMockServer.baseUrl());
+    propertiesRegistry.add("working.directory", () -> "C:\\workdir");
+    propertiesRegistry.add("files.directory", () -> "C:\\workdir");
+
   }
 
   @Test
@@ -57,8 +60,12 @@ class ExtractionControllerTests {
             .getPath();
     byte[] responseByteArray = readFileToBytes(responsePath);
 
-    httpMockServer.stubFor(get("/v2/ps?page=0").willReturn(aResponse().withStatus(200).withBody(responseByteArray)));
-    httpMockServer.stubFor(get("/v2/ps?page=1").willReturn(aResponse().withStatus(410)));
+    httpMockServer.stubFor(get("/v2/ps?page=0")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("3p.json")));
+    httpMockServer.stubFor(get("/v2/ps?page=0").willReturn(aResponse().withStatus(410)));
 
     controller.generateExtractAndGetFile();
   }
