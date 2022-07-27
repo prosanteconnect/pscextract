@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import fr.ans.psc.pscextract.controller.ExtractionController;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ class ExtractionControllerTests {
             () -> httpMockServer.baseUrl());
   }
 
+  @Disabled
   @Test
   void extractGenerationTest() throws IOException {
 
