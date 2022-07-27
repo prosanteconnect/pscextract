@@ -255,12 +255,12 @@ public class ExtractionController {
         log.info("starting extraction on "+apiBaseUrl);
 
         try {
-            ResponseEntity<List<Ps>> response = psApi.getPsListByPageWithHttpInfo(page,null);
+            List<Ps> response = psApi.getPsByPage(BigDecimal.valueOf(page));
             log.info("response received");
             Boolean outOfPages = false;
 
             do {
-                tempPsList = response.getBody();
+                tempPsList = response;
                 tempPsList = unwind(tempPsList);
 
                 for (Ps ps : tempPsList) {
@@ -268,7 +268,7 @@ public class ExtractionController {
                 }
                 page++;
                 try {
-                    psApi.getPsListByPageWithHttpInfo(page,null);
+                    psApi.getPsByPage(BigDecimal.valueOf(page));
                 }catch( RestClientException e ){
                     log.warn("Out of pages: "+e.getMessage());
                     outOfPages = true;
