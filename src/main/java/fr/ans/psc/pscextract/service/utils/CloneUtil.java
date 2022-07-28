@@ -21,11 +21,13 @@ public class CloneUtil {
     targetPs.setNationalId(sourcePs.getNationalId());
     targetPs.setLastName(sourcePs.getLastName());
 
-    List<FirstName> targetFirstNames = new ArrayList<>();
-    for(FirstName firstName : sourcePs.getFirstNames()){
-      targetFirstNames.add(new FirstName(firstName.getFirstName(), firstName.getOrder()));
+    if(sourcePs.getFirstNames() != null) {
+      List<FirstName> targetFirstNames = new ArrayList<>();
+      for (FirstName firstName : sourcePs.getFirstNames()) {
+        targetFirstNames.add(new FirstName(firstName.getFirstName(), firstName.getOrder()));
+      }
+      targetPs.setFirstNames(targetFirstNames);
     }
-    targetPs.setFirstNames(targetFirstNames);
 
     targetPs.setDateOfBirth(sourcePs.getDateOfBirth());
     targetPs.setBirthAddressCode(sourcePs.getBirthAddressCode());
@@ -37,14 +39,16 @@ public class CloneUtil {
     targetPs.setSalutationCode(sourcePs.getSalutationCode());
 
     List<Profession> targetProfessions = new ArrayList<>();
-    targetProfessions.set(0, cloneProfession(sourceProfession, sourceExpertise, sourceWorkSituation));
+    targetProfessions.add(cloneProfession(sourceProfession, sourceExpertise, sourceWorkSituation));
+    targetPs.setProfessions(targetProfessions);
 
-    List<String> targetIds = new ArrayList<>();
-    for(String id : sourcePs.getIds()){
-      targetIds.add(id);
+    if(sourcePs.getIds()!=null) {
+      List<String> targetIds = new ArrayList<>();
+      for (String id : sourcePs.getIds()) {
+        targetIds.add(id);
+      }
+      targetPs.setIds(targetIds);
     }
-    targetPs.setIds(targetIds);
-
     targetPs.setActivated(sourcePs.getActivated());
     targetPs.setDeactivated(sourcePs.getDeactivated());
 
@@ -62,11 +66,13 @@ public class CloneUtil {
     targetProfession.setFirstName(sourceProfession.getFirstName());
 
     List<Expertise> targetExpertises = new ArrayList<>();
-    targetExpertises.set(0, cloneExpertise(sourceExpertise));
+    targetExpertises.add(cloneExpertise(sourceExpertise));
 
     List<WorkSituation> targetWorkSituations = new ArrayList<>();
-    targetWorkSituations.set(0, cloneWorkSituation(sourceWorkSituation));
+    targetWorkSituations.add(cloneWorkSituation(sourceWorkSituation));
 
+    targetProfession.setExpertises(targetExpertises);
+    targetProfession.setWorkSituations(targetWorkSituations);
     return targetProfession;
   }
 
@@ -96,8 +102,9 @@ public class CloneUtil {
   }
 
   public static Structure cloneStructure(Structure sourceStructure){
+    if (sourceStructure == null)
+      return null;
     Structure targetStructure = new Structure();
-
     targetStructure.setSiteSIRET(sourceStructure.getSiteSIRET());
     targetStructure.setSiteSIREN(sourceStructure.getSiteSIREN());
     targetStructure.setSiteFINESS(sourceStructure.getSiteFINESS());

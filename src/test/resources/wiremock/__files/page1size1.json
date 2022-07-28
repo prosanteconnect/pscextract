@@ -1,0 +1,68 @@
+[
+  {
+    "idType": "3",
+    "id": "750821092/|067L-06067983",
+    "nationalId": "3750821092/067L-06067983",
+    "lastName": "HOLLIER",
+    "firstNames": [
+      {
+        "firstName": "NELSON",
+        "order": 0
+      },
+      {
+        "firstName": "THOMAS",
+        "order": 1
+      },
+      {
+        "firstName": "",
+        "order": 2
+      }
+    ],
+    "dateOfBirth": "",
+    "birthAddressCode": "",
+    "birthCountryCode": "",
+    "birthAddress": "",
+    "genderCode": "",
+    "phone": "",
+    "email": "",
+    "salutationCode": "M",
+    "professions": [
+      {
+        "exProId": "50C",
+        "expertises": [
+          {
+            "expertiseId": "1.1"
+          },
+          {
+            "expertiseId": "1.2"
+          }
+        ],
+        "workSituations": [
+          {
+            "situId": "1.1",
+            "structure": {
+              "structureTechnicalId": "1.1.1"
+            }
+          },
+          {
+            "situId": "1.2",
+            "structure": {
+              "structureTechnicalId": "1.1.1"
+            }
+          },
+          {
+            "situId": "1.3",
+            "structure": {
+              "structureTechnicalId": "1.1.1"
+            }
+          }
+        ]
+      }
+    ],
+    "activated": 1,
+    "ids": [
+      "111"
+    ]
+  }
+]
+

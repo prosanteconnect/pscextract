@@ -45,10 +45,10 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -85,6 +85,12 @@ public class ExtractionController {
 
     @Value("${files.directory}")
     private String filesDirectory;
+
+    @Value("${page.size}")
+    private Integer pageSize;
+
+    @Value("${first.name.count}")
+    private Integer firstNameCount;
 
     @Value("${extract.test.name}")
     public String extractTestName;
@@ -222,11 +228,11 @@ public class ExtractionController {
         ApiClient apiClient = new ApiClient();
         apiClient.setBasePath(apiBaseUrl);
         this.psApi = new PsApi(apiClient);
-        log.info("api client created");
+        log.info("Api client with url "+apiBaseUrl+" created");
 
         File tempExtractFile = File.createTempFile("tempExtract", "tmp");
         BufferedWriter bw = Files.newBufferedWriter(tempExtractFile.toPath(), StandardCharsets.UTF_8);
-        log.info("temp extract file created");
+        log.info("BufferedWriter initialized");
 
         String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
         "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
@@ -242,33 +248,37 @@ public class ExtractionController {
         "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
         "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
         "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
-        "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|\n";
+        "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|Code genre d'activité|\n";
         bw.write(header);
-        log.info("header written");
+        log.info("Header written");
 
 
         setExtractionTime();
 
         Integer page = 0;
+        List<Ps> responsePsList;
         List<Ps> tempPsList;
 
-        log.info("starting extraction on "+apiBaseUrl);
+        log.info("Starting extraction at "+apiBaseUrl);
 
         try {
-            List<Ps> response = psApi.getPsByPage(BigDecimal.valueOf(page));
-            log.info("response received");
+            BigDecimal size = BigDecimal.valueOf(pageSize);
+            List<Ps> response = psApi.getPsByPage(BigDecimal.valueOf(page), size);
+            log.info("Page "+page+" of size "+size+" received");
             Boolean outOfPages = false;
 
             do {
-                tempPsList = response;
-                tempPsList = unwind(tempPsList);
+                responsePsList = response;
+                tempPsList = unwind(responsePsList);
 
                 for (Ps ps : tempPsList) {
                     bw.write(transformPsToLine(ps));
+                    log.info("Ps "+ps.getId()+" transformed and written");
                 }
                 page++;
                 try {
-                    psApi.getPsByPage(BigDecimal.valueOf(page));
+                    response =psApi.getPsByPage(BigDecimal.valueOf(page),size);
+                    log.info("Page "+page+" of size"+size+" received");
                 }catch( RestClientException e ){
                     log.warn("Out of pages: "+e.getMessage());
                     outOfPages = true;
@@ -279,6 +289,7 @@ public class ExtractionController {
         }
         finally {
             bw.close();
+            log.info("BufferedWriter closed");
         }
 
 
@@ -296,19 +307,24 @@ public class ExtractionController {
         zos.finish();
         zos.close();
 
+
         tempExtractFile.delete();
+        log.info("Temp file at "+tempExtractFile.getAbsolutePath()+" deleted");
 
         Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
                 Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+        log.info("File at "+FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))+" moved to "+FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION)));
 
         File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+        log.info("File "+extractFile.getName()+" created");
 
         FileSystemResource resource = new FileSystemResource(extractFile);
 
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + tempExtractFile.getName());
+        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
         responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
-        responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(tempExtractFile.length()));
+        responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractFile.length()));
+
 
         return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
     }
@@ -333,65 +349,87 @@ public class ExtractionController {
 
 
     private String transformPsToLine(Ps ps) {
-        Profession profession = ps.getProfessions().get(0);
-        Expertise expertise = profession.getExpertises().get(0);
-        WorkSituation workSituation = profession.getWorkSituations().get(0);
-        Structure structure = workSituation.getStructure();
-
+        String activityCode = null;
         StringBuilder sb = new StringBuilder();
-        sb.append(ps.getIdType()).append("|");
-        sb.append(ps.getId()).append("|");
-        sb.append(ps.getNationalId()).append("|");
-        sb.append(ps.getLastName()).append("|");
-        sb.append(transformFirstNamesToString(ps.getFirstNames())).append("|");
-        sb.append(ps.getDateOfBirth()).append("|");
-        sb.append(ps.getBirthAddressCode()).append("|");
-        sb.append(ps.getBirthCountryCode()).append("|");
-        sb.append(ps.getBirthAddress()).append("|");
-        sb.append(ps.getGenderCode()).append("|");
-        sb.append(ps.getPhone()).append("|");
-        sb.append(ps.getEmail()).append("|");
-        sb.append(ps.getSalutationCode()).append("|");
-        sb.append(profession.getCode()).append("|");
-        sb.append(profession.getCategoryCode()).append("|");
-        sb.append(profession.getSalutationCode()).append("|");
-        sb.append(profession.getLastName()).append("|");
-        sb.append(profession.getFirstName()).append("|");
-        sb.append(expertise.getTypeCode()).append("|");
-        sb.append(expertise.getCode()).append("|");
-        sb.append(workSituation.getModeCode()).append("|");
-        sb.append(workSituation.getActivitySectorCode()).append("|");
-        sb.append(workSituation.getPharmacistTableSectionCode()).append("|");
-        sb.append(workSituation.getRoleCode()).append("|");
-        sb.append(structure.getSiteSIRET()).append("|");
-        sb.append(structure.getSiteSIREN()).append("|");
-        sb.append(structure.getSiteFINESS()).append("|");
-        sb.append(structure.getLegalEstablishmentFINESS()).append("|");
-        sb.append(structure.getStructureTechnicalId()).append("|");
-        sb.append(structure.getLegalCommercialName()).append("|");
-        sb.append(structure.getPublicCommercialName()).append("|");
-        sb.append(structure.getRecipientAdditionalInfo()).append("|");
-        sb.append(structure.getGeoLocationAdditionalInfo()).append("|");
-        sb.append(structure.getStreetNumber()).append("|");
-        sb.append(structure.getStreetNumberRepetitionIndex()).append("|");
-        sb.append(structure.getStreetCategoryCode()).append("|");
-        sb.append(structure.getStreetLabel()).append("|");
-        sb.append(structure.getDistributionMention()).append("|");
-        sb.append(structure.getCedexOffice()).append("|");
-        sb.append(structure.getPostalCode()).append("|");
-        sb.append(structure.getCommuneCode()).append("|");
-        sb.append(structure.getCountryCode()).append("|");
-        sb.append(structure.getPhone()).append("|");
-        sb.append(structure.getPhone2()).append("|");
-        sb.append(structure.getFax()).append("|");
-        sb.append(structure.getEmail()).append("|");
-        sb.append(structure.getDepartmentCode()).append("|");
-        sb.append(structure.getOldStructureId()).append("|");
-        sb.append(workSituation.getRegistrationAuthority()).append("|");
-        sb.append(workSituation.getActivityKindCode()).append("|");
-        sb.append(transformIdsToString(ps.getIds())).append("|");
+        sb.append(Optional.ofNullable(ps.getIdType()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getId()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getNationalId()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getLastName()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(transformFirstNamesToStringWithApostrophes(ps.getFirstNames())).orElse("''")).append("|");
+        sb.append(Optional.ofNullable(ps.getDateOfBirth()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getBirthAddressCode()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getBirthCountryCode()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getBirthAddress()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getGenderCode()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getPhone()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getEmail()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getSalutationCode()).orElse("")).append("|");
 
+        if(ps.getProfessions()!=null) {
+            Profession profession = ps.getProfessions().get(0);
+            sb.append(Optional.ofNullable(profession.getCode()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getCategoryCode()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getSalutationCode()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getLastName()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getFirstName()).orElse("")).append("|");
+
+            if(profession.getExpertises()!=null) {
+                Expertise expertise = profession.getExpertises().get(0);
+                sb.append(Optional.ofNullable(expertise.getTypeCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(expertise.getCode()).orElse("")).append("|");
+            }else{
+                sb.append("|".repeat(2));
+            }
+
+            if(profession.getWorkSituations()!=null) {
+                WorkSituation workSituation = profession.getWorkSituations().get(0);
+                sb.append(Optional.ofNullable(workSituation.getModeCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(workSituation.getActivitySectorCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(workSituation.getPharmacistTableSectionCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(workSituation.getRoleCode()).orElse("")).append("|");
+
+                if(workSituation.getStructure()!=null) {
+                    Structure structure = workSituation.getStructure();
+                    sb.append(Optional.ofNullable(structure.getSiteSIRET()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getSiteSIREN()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getSiteFINESS()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getLegalEstablishmentFINESS()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStructureTechnicalId()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getLegalCommercialName()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPublicCommercialName()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getRecipientAdditionalInfo()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getGeoLocationAdditionalInfo()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetNumber()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetNumberRepetitionIndex()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetCategoryCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetLabel()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getDistributionMention()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getCedexOffice()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPostalCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getCommuneCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getCountryCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPhone()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPhone2()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getFax()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getEmail()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getDepartmentCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getOldStructureId()).orElse("")).append("|");
+                }else{
+                    sb.append("|".repeat(24));
+                }
+                sb.append(Optional.ofNullable(workSituation.getRegistrationAuthority()).orElse("")).append("|");
+                activityCode = (Optional.ofNullable(workSituation.getActivityKindCode()).orElse(null));
+
+            }else{
+                sb.append("|".repeat(29));
+            }
+        }else{
+            sb.append("|".repeat(36));
+        }
+        sb.append(Optional.ofNullable(transformIdsToString(ps.getIds())).orElse("")).append("|");
+        sb.append(Optional.ofNullable(activityCode).orElse("")).append("|");
         sb.append("\n");
+
         return sb.toString();
     }
 
@@ -399,16 +437,25 @@ public class ExtractionController {
         return extractName + "_" + extractTime + fileExtension;
     }
 
-    private String transformFirstNamesToString(List<FirstName> firstNames){
-        firstNames.sort(Comparator.comparing(FirstName::getOrder));
-        StringBuilder sb = new StringBuilder();
-        for(FirstName firstName : firstNames){
-            sb.append(firstName.getFirstName()).append(" ");
-        }
-        return sb.toString();
+    private String transformFirstNamesToStringWithApostrophes(List<FirstName> firstNames) {
+        if (firstNames != null) {
+            firstNames.sort(Comparator.comparing(FirstName::getOrder));
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < firstNameCount; i++) {
+                if (i < firstNames.size()) sb.append(firstNames.get(i).getFirstName());
+                sb.append("'");
+            }
+
+            sb.deleteCharAt(sb.length() - 1);
+            return sb.toString();
+        } else return null;
     }
 
     private String transformIdsToString(List<String> ids) {
+        if(ids==null)
+            return null;
+
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < ids.size(); i++) {
             sb.append(getLinkString(ids.get(i)));

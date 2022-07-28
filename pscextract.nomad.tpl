@@ -103,6 +103,8 @@ api.base.url=http://localhost:8080/psc-api-maj/api
 
 extract.name=Extraction_Pro_sante_connect
 extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule.zip
+page.size=1000
+first.name.count=3
 server.servlet.context-path=/pscextract/v1
 spring.mail.host={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_server_host }}{{ end }}
 spring.mail.port={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_server_port }}{{ end }}

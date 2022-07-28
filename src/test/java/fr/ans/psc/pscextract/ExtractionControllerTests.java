@@ -9,12 +9,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import fr.ans.psc.model.Ps;
 import fr.ans.psc.pscextract.controller.ExtractionController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -23,6 +25,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 
 @SpringBootTest
 @ContextConfiguration(classes = PscextractApplication.class)
@@ -47,8 +50,10 @@ class ExtractionControllerTests {
   static void registerPgProperties(DynamicPropertyRegistry propertiesRegistry) {
     propertiesRegistry.add("api.base.url",
             () -> httpMockServer.baseUrl());
-    propertiesRegistry.add("working.directory", () -> "C:\\workdir");
-    propertiesRegistry.add("files.directory", () -> "C:\\workdir");
+    propertiesRegistry.add("working.directory", () -> "src/test/resources/work");
+    propertiesRegistry.add("files.directory", () -> "src/test/resources/work");
+    propertiesRegistry.add("page.size", () -> "1");
+    propertiesRegistry.add("first.name.count", () -> "3");
 
   }
 
@@ -60,14 +65,35 @@ class ExtractionControllerTests {
             .getPath();
     byte[] responseByteArray = readFileToBytes(responsePath);
 
-    httpMockServer.stubFor(get("/v2/ps?page=0")
+//    httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
+//            .willReturn(aResponse()
+//                    .withStatus(200)
+//                    .withHeader("Content-Type", "application/json")
+//                    .withBodyFile("page1size1.json")));
+//    httpMockServer.stubFor(get("/v2/ps?page=1&size=1")
+//            .willReturn(aResponse()
+//                    .withStatus(200)
+//                    .withHeader("Content-Type", "application/json")
+//                    .withBodyFile("page2size1.json")));
+//    httpMockServer.stubFor(get("/v2/ps?page=2&size=1")
+//            .willReturn(aResponse()
+//                    .withStatus(200)
+//                    .withHeader("Content-Type", "application/json")
+//                    .withBodyFile("page3size1.json")));
+//    httpMockServer.stubFor(get("/v2/ps?page=3&size=1").willReturn(aResponse().withStatus(410)));
+
+    httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
             .willReturn(aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", "application/json")
-                    .withBodyFile("3p.json")));
-    httpMockServer.stubFor(get("/v2/ps?page=0").willReturn(aResponse().withStatus(410)));
+                    .withBodyFile("multiple-work-situations.json")));
+    httpMockServer.stubFor(get("/v2/ps?page=1&size=1")
+            .willReturn(aResponse()
+                    .withStatus(420)));
 
-    controller.generateExtractAndGetFile();
+    ResponseEntity<List<Ps>> response = controller.generateExtractAndGetFile();
+
+    System.out.println(response.getBody());
   }
 
   private static byte[] readFileToBytes(String filePath) throws IOException {

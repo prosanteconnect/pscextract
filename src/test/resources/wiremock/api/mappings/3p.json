@@ -1,5 +1,4 @@
-{
-      "fr.ans.psc.model.Ps": [
+[
             {
                   "id": "1",
                   "nationalId": "111",
@@ -130,7 +129,7 @@
                         }
                   ],
                   "activated": 1,
-                  "deactivated": 500,
+                  "deactivated": 0,
                   "ids": [
                         "222"
                   ]
@@ -225,10 +224,10 @@
                         }
                   ],
                   "activated": 1,
-                  "deactivated": 2,
+                  "deactivated": 0,
                   "ids": [
                         "333"
                   ]
             }
       ]
-}
+

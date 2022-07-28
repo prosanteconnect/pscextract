@@ -1,0 +1,84 @@
+[{
+  "idType": "8",
+  "id": "10106820706",
+  "nationalId": "810106820706",
+  "lastName": "D'ARCO",
+  "firstNames": [
+    {
+      "firstName": "ANNE",
+      "order": 0
+    },
+    {
+      "firstName": "CATHERINE",
+      "order": 1
+    },
+    {
+      "firstName": "",
+      "order": 2
+    }
+  ],
+  "dateOfBirth": "25/09/1975",
+  "birthAddressCode": "91521",
+  "birthCountryCode": "99000",
+  "birthAddress": "",
+  "genderCode": "F",
+  "phone": "0033681162661",
+  "email": "",
+  "salutationCode": "MME",
+  "professions": [
+    {
+      "exProId": null,
+      "code": "60",
+      "categoryCode": "C",
+      "salutationCode": "",
+      "lastName": "D'ARCO",
+      "firstName": "ANNE-CATHERINE",
+      "expertises": [
+        {
+          "expertiseId": null,
+          "typeCode": "",
+          "code": ""
+        }
+      ],
+      "workSituations": [
+        {
+          "situId": null,
+          "modeCode": "S",
+          "activitySectorCode": "SA43",
+          "pharmacistTableSectionCode": "",
+          "roleCode": "",
+          "activityKindCode": "GENR01",
+          "registrationAuthority": "//",
+          "structure":
+            {
+              "siteSIRET": "26890206100038",
+              "structureTechnicalId": "R10100000489889",
+              "legalCommercialName": "CENTRE COMMUNAL ACTION SOCIALE",
+              "streetNumber": "5",
+              "streetLabel":"RUE JULES DUMONT D URVILLE",
+              "cedexOffice": "89300 JOIGNY",
+              "postalCode": "89300",
+              "communeCode": "89206",
+              "countryCode": "99000",
+              "oldStructureId": "326890206100038"
+            }
+        },
+        {
+          "situId": null,
+          "modeCode": "S",
+          "activitySectorCode": "",
+          "pharmacistTableSectionCode": "",
+          "roleCode": "",
+          "activityKindCode": "GENR01",
+          "registrationAuthority": "//",
+          "structure": null
+        }
+      ]
+    }
+  ],
+  "ids": [
+    "810106820706"
+  ],
+  "activated": 1657031125,
+  "deactivated": null
+}]
