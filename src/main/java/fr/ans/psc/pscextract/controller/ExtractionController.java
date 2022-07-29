@@ -2,17 +2,11 @@ package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.ApiClient;
 import fr.ans.psc.api.PsApi;
-import fr.ans.psc.model.Expertise;
-import fr.ans.psc.model.FirstName;
-import fr.ans.psc.model.Profession;
 import fr.ans.psc.model.Ps;
-import fr.ans.psc.model.Structure;
-import fr.ans.psc.model.WorkSituation;
 import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.EmailService;
 import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
-import fr.ans.psc.pscextract.service.utils.CloneUtil;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
@@ -42,13 +36,8 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -89,8 +78,7 @@ public class ExtractionController {
     @Value("${page.size}")
     private Integer pageSize;
 
-    @Value("${first.name.count}")
-    private Integer firstNameCount;
+
 
     @Value("${extract.test.name}")
     public String extractTestName;
@@ -253,7 +241,7 @@ public class ExtractionController {
         log.info("Header written");
 
 
-        setExtractionTime();
+        transformationService.setExtractionTime(this);
 
         Integer page = 0;
         List<Ps> responsePsList;
@@ -269,10 +257,10 @@ public class ExtractionController {
 
             do {
                 responsePsList = response;
-                tempPsList = unwind(responsePsList);
+                tempPsList = transformationService.unwind(responsePsList);
 
                 for (Ps ps : tempPsList) {
-                    bw.write(transformPsToLine(ps));
+                    bw.write(transformationService.transformPsToLine(ps, this));
                     log.info("Ps "+ps.getId()+" transformed and written");
                 }
                 page++;
@@ -285,7 +273,8 @@ public class ExtractionController {
                 }
                 } while ( !outOfPages );
         }catch (RestClientException e) {
-            log.error("No pages :", e);
+            log.error("No pages found :", e);
+            return new ResponseEntity<>(null, null, HttpStatus.NO_CONTENT);
         }
         finally {
             bw.close();
@@ -296,9 +285,9 @@ public class ExtractionController {
         InputStream fileContent = new FileInputStream(tempExtractFile);
         log.info("File content read");
 
-        ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(TXT_EXTENSION));
+        ZipEntry zipEntry = new ZipEntry(transformationService.getFileNameWithExtension(TXT_EXTENSION, this));
         zipEntry.setTime(System.currentTimeMillis());
-        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(workingDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))));
         zos.putNextEntry(zipEntry);
         StreamUtils.copy(fileContent, zos);
 
@@ -311,9 +300,9 @@ public class ExtractionController {
         tempExtractFile.delete();
         log.info("Temp file at "+tempExtractFile.getAbsolutePath()+" deleted");
 
-        Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))),
-                Path.of(FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION))));
-        log.info("File at "+FileNamesUtil.getFilePath(workingDirectory, getFileNameWithExtension(ZIP_EXTENSION))+" moved to "+FileNamesUtil.getFilePath(filesDirectory, getFileNameWithExtension(ZIP_EXTENSION)));
+        Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))),
+                Path.of(FileNamesUtil.getFilePath(filesDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))));
+        log.info("File at "+FileNamesUtil.getFilePath(workingDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))+" moved to "+FileNamesUtil.getFilePath(filesDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this)));
 
         File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
         log.info("File "+extractFile.getName()+" created");
@@ -327,168 +316,6 @@ public class ExtractionController {
 
 
         return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
-    }
-
-    private ArrayList<Ps> unwind(List<Ps> psList){
-        ArrayList<Ps> unwoundPsList = new ArrayList<>();
-        Ps tempPs;
-        for(Ps ps : psList){
-            if (ps.getDeactivated()==null || ps.getActivated() > ps.getDeactivated()) {
-                for (Profession profession : ps.getProfessions()) {
-                    for (Expertise expertise : profession.getExpertises()) {
-                        for (WorkSituation workSituation : profession.getWorkSituations()) {
-                            tempPs = CloneUtil.clonePs(ps,profession,expertise,workSituation);
-                            unwoundPsList.add(tempPs);
-                        }
-                    }
-                }
-            }
-        }
-        return unwoundPsList;
-    }
-
-
-    private String transformPsToLine(Ps ps) {
-        String activityCode = null;
-        StringBuilder sb = new StringBuilder();
-        sb.append(Optional.ofNullable(ps.getIdType()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getId()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getNationalId()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getLastName()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(transformFirstNamesToStringWithApostrophes(ps.getFirstNames())).orElse("''")).append("|");
-        sb.append(Optional.ofNullable(ps.getDateOfBirth()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getBirthAddressCode()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getBirthCountryCode()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getBirthAddress()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getGenderCode()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getPhone()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getEmail()).orElse("")).append("|");
-        sb.append(Optional.ofNullable(ps.getSalutationCode()).orElse("")).append("|");
-
-        if(ps.getProfessions()!=null) {
-            Profession profession = ps.getProfessions().get(0);
-            sb.append(Optional.ofNullable(profession.getCode()).orElse("")).append("|");
-            sb.append(Optional.ofNullable(profession.getCategoryCode()).orElse("")).append("|");
-            sb.append(Optional.ofNullable(profession.getSalutationCode()).orElse("")).append("|");
-            sb.append(Optional.ofNullable(profession.getLastName()).orElse("")).append("|");
-            sb.append(Optional.ofNullable(profession.getFirstName()).orElse("")).append("|");
-
-            if(profession.getExpertises()!=null) {
-                Expertise expertise = profession.getExpertises().get(0);
-                sb.append(Optional.ofNullable(expertise.getTypeCode()).orElse("")).append("|");
-                sb.append(Optional.ofNullable(expertise.getCode()).orElse("")).append("|");
-            }else{
-                sb.append("|".repeat(2));
-            }
-
-            if(profession.getWorkSituations()!=null) {
-                WorkSituation workSituation = profession.getWorkSituations().get(0);
-                sb.append(Optional.ofNullable(workSituation.getModeCode()).orElse("")).append("|");
-                sb.append(Optional.ofNullable(workSituation.getActivitySectorCode()).orElse("")).append("|");
-                sb.append(Optional.ofNullable(workSituation.getPharmacistTableSectionCode()).orElse("")).append("|");
-                sb.append(Optional.ofNullable(workSituation.getRoleCode()).orElse("")).append("|");
-
-                if(workSituation.getStructure()!=null) {
-                    Structure structure = workSituation.getStructure();
-                    sb.append(Optional.ofNullable(structure.getSiteSIRET()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getSiteSIREN()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getSiteFINESS()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getLegalEstablishmentFINESS()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getStructureTechnicalId()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getLegalCommercialName()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getPublicCommercialName()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getRecipientAdditionalInfo()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getGeoLocationAdditionalInfo()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getStreetNumber()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getStreetNumberRepetitionIndex()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getStreetCategoryCode()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getStreetLabel()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getDistributionMention()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getCedexOffice()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getPostalCode()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getCommuneCode()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getCountryCode()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getPhone()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getPhone2()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getFax()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getEmail()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getDepartmentCode()).orElse("")).append("|");
-                    sb.append(Optional.ofNullable(structure.getOldStructureId()).orElse("")).append("|");
-                }else{
-                    sb.append("|".repeat(24));
-                }
-                sb.append(Optional.ofNullable(workSituation.getRegistrationAuthority()).orElse("")).append("|");
-                activityCode = (Optional.ofNullable(workSituation.getActivityKindCode()).orElse(null));
-
-            }else{
-                sb.append("|".repeat(29));
-            }
-        }else{
-            sb.append("|".repeat(36));
-        }
-        sb.append(Optional.ofNullable(transformIdsToString(ps.getIds())).orElse("")).append("|");
-        sb.append(Optional.ofNullable(activityCode).orElse("")).append("|");
-        sb.append("\n");
-
-        return sb.toString();
-    }
-
-    public String getFileNameWithExtension(String fileExtension) {
-        return extractName + "_" + extractTime + fileExtension;
-    }
-
-    private String transformFirstNamesToStringWithApostrophes(List<FirstName> firstNames) {
-        if (firstNames != null) {
-            firstNames.sort(Comparator.comparing(FirstName::getOrder));
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < firstNameCount; i++) {
-                if (i < firstNames.size()) sb.append(firstNames.get(i).getFirstName());
-                sb.append("'");
-            }
-
-            sb.deleteCharAt(sb.length() - 1);
-            return sb.toString();
-        } else return null;
-    }
-
-    private String transformIdsToString(List<String> ids) {
-        if(ids==null)
-            return null;
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ids.size(); i++) {
-            sb.append(getLinkString(ids.get(i)));
-            if (i != ids.size() - 1) {
-                sb.append(";");
-            }
-        }
-        return sb.toString();
-    }
-
-    private String getLinkString(String id) {
-        switch (id.charAt(0)) {
-            case ('1'):
-                // if (s.charAt(1) == '0') return s+','+"MSSante"+','+'1';
-                return id + ',' + "ADELI" + ',' + '1';
-            case ('3'):
-                return id + ',' + "FINESS" + ',' + '1';
-            case ('4'):
-                return id + ',' + "SIREN" + ',' + '1';
-            case ('5'):
-                return id + ',' + "SIRET" + ',' + '1';
-            case ('6'):
-            case ('8'):
-                return id + ',' + "RPPS" + ',' + '1';
-            default:
-                return id + ',' + "ADELI" + ',' + '1';
-        }
-    }
-
-    private void setExtractionTime() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-        LocalDateTime now = LocalDateTime.now();
-        extractTime = dtf.format(now);
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)

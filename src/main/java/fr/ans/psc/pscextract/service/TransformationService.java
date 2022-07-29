@@ -4,6 +4,14 @@ import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.ObjectRowProcessor;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
+import fr.ans.psc.model.Expertise;
+import fr.ans.psc.model.FirstName;
+import fr.ans.psc.model.Profession;
+import fr.ans.psc.model.Ps;
+import fr.ans.psc.model.Structure;
+import fr.ans.psc.model.WorkSituation;
+import fr.ans.psc.pscextract.controller.ExtractionController;
+import fr.ans.psc.pscextract.service.utils.CloneUtil;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +52,9 @@ public class TransformationService {
 
     @Value("${working.directory}")
     private String workingDirectory;
+
+    @Value("${first.name.count}")
+    private Integer firstNameCount;
 
     private String extractTime ="197001010001";
 
@@ -173,25 +184,6 @@ public class TransformationService {
         return lineArr;
     }
 
-    private String getLinkString(String s) {
-        switch (s.charAt(0)) {
-            case ('1'):
-                // if (s.charAt(1) == '0') return s+','+"MSSante"+','+'1';
-                return s+','+"ADELI"+','+'1';
-            case ('3'):
-                return s+','+"FINESS"+','+'1';
-            case ('4'):
-                return s+','+"SIREN"+','+'1';
-            case ('5'):
-                return s+','+"SIRET"+','+'1';
-            case ('6'):
-            case ('8'):
-                return s+','+"RPPS"+','+'1';
-            default:
-                return s+','+"ADELI"+','+'1';
-        }
-    }
-
     private void setExtractionTime() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
         LocalDateTime now = LocalDateTime.now();
@@ -207,4 +199,167 @@ public class TransformationService {
         return extractName + "_" + extractTime + fileExtension;
     }
 
+    public String getLinkString(String id) {
+        if(id.isEmpty()) {
+            return "";
+        }
+        switch (id.charAt(0)) {
+            case ('1'):
+                // if (s.charAt(1) == '0') return s+','+"MSSante"+','+'1';
+                return id + ',' + "ADELI" + ',' + '1';
+            case ('3'):
+                return id + ',' + "FINESS" + ',' + '1';
+            case ('4'):
+                return id + ',' + "SIREN" + ',' + '1';
+            case ('5'):
+                return id + ',' + "SIRET" + ',' + '1';
+            case ('6'):
+            case ('8'):
+                return id + ',' + "RPPS" + ',' + '1';
+            default:
+                return id + ',' + "ADELI" + ',' + '1';
+        }
+    }
+
+    public String transformIdsToString(List<String> ids, ExtractionController extractionController) {
+        if(ids==null)
+            return "";
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            sb.append(getLinkString(ids.get(i)));
+            if (i != ids.size() - 1) {
+                sb.append(";");
+            }
+        }
+        return sb.toString();
+    }
+
+    public String transformFirstNamesToStringWithApostrophes(List<FirstName> firstNames, ExtractionController extractionController) {
+        if (firstNames != null) {
+            firstNames.sort(Comparator.comparing(FirstName::getOrder));
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < firstNameCount; i++) {
+                if (i < firstNames.size()) sb.append(firstNames.get(i).getFirstName());
+                sb.append("'");
+            }
+
+            sb.deleteCharAt(sb.length() - 1);
+            return sb.toString();
+        } else return null;
+    }
+
+    public String getFileNameWithExtension(String fileExtension, ExtractionController extractionController) {
+        return extractName + "_" + extractTime + fileExtension;
+    }
+
+    public ArrayList<Ps> unwind(List<Ps> psList){
+        ArrayList<Ps> unwoundPsList = new ArrayList<>();
+        Ps tempPs;
+        for(Ps ps : psList){
+            if (ps.getDeactivated()==null || ps.getActivated() > ps.getDeactivated()) {
+                for (Profession profession : ps.getProfessions()) {
+                    for (Expertise expertise : profession.getExpertises()) {
+                        for (WorkSituation workSituation : profession.getWorkSituations()) {
+                            tempPs = CloneUtil.clonePs(ps,profession,expertise,workSituation);
+                            unwoundPsList.add(tempPs);
+                        }
+                    }
+                }
+            }
+        }
+        return unwoundPsList;
+    }
+
+    public String transformPsToLine(Ps ps, ExtractionController extractionController) {
+        String activityCode = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append(Optional.ofNullable(ps.getIdType()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getId()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getNationalId()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getLastName()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(transformFirstNamesToStringWithApostrophes(ps.getFirstNames(), extractionController)).orElse("''")).append("|");
+        sb.append(Optional.ofNullable(ps.getDateOfBirth()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getBirthAddressCode()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getBirthCountryCode()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getBirthAddress()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getGenderCode()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getPhone()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getEmail()).orElse("")).append("|");
+        sb.append(Optional.ofNullable(ps.getSalutationCode()).orElse("")).append("|");
+
+        if(ps.getProfessions()!=null) {
+            Profession profession = ps.getProfessions().get(0);
+            sb.append(Optional.ofNullable(profession.getCode()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getCategoryCode()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getSalutationCode()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getLastName()).orElse("")).append("|");
+            sb.append(Optional.ofNullable(profession.getFirstName()).orElse("")).append("|");
+
+            if(profession.getExpertises()!=null) {
+                Expertise expertise = profession.getExpertises().get(0);
+                sb.append(Optional.ofNullable(expertise.getTypeCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(expertise.getCode()).orElse("")).append("|");
+            }else{
+                sb.append("|".repeat(2));
+            }
+
+            if(profession.getWorkSituations()!=null) {
+                WorkSituation workSituation = profession.getWorkSituations().get(0);
+                sb.append(Optional.ofNullable(workSituation.getModeCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(workSituation.getActivitySectorCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(workSituation.getPharmacistTableSectionCode()).orElse("")).append("|");
+                sb.append(Optional.ofNullable(workSituation.getRoleCode()).orElse("")).append("|");
+
+                if(workSituation.getStructure()!=null) {
+                    Structure structure = workSituation.getStructure();
+                    sb.append(Optional.ofNullable(structure.getSiteSIRET()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getSiteSIREN()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getSiteFINESS()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getLegalEstablishmentFINESS()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStructureTechnicalId()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getLegalCommercialName()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPublicCommercialName()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getRecipientAdditionalInfo()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getGeoLocationAdditionalInfo()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetNumber()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetNumberRepetitionIndex()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetCategoryCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getStreetLabel()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getDistributionMention()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getCedexOffice()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPostalCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getCommuneCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getCountryCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPhone()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getPhone2()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getFax()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getEmail()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getDepartmentCode()).orElse("")).append("|");
+                    sb.append(Optional.ofNullable(structure.getOldStructureId()).orElse("")).append("|");
+                }else{
+                    sb.append("|".repeat(24));
+                }
+                sb.append(Optional.ofNullable(workSituation.getRegistrationAuthority()).orElse("")).append("|");
+                activityCode = (Optional.ofNullable(workSituation.getActivityKindCode()).orElse(""));
+
+            }else{
+                sb.append("|".repeat(29));
+            }
+        }else{
+            sb.append("|".repeat(36));
+        }
+        sb.append(Optional.ofNullable(transformIdsToString(ps.getIds(), extractionController)).orElse("")).append("|");
+        sb.append(Optional.ofNullable(activityCode).orElse("")).append("|");
+        sb.append("\n");
+
+        return sb.toString();
+    }
+
+    public void setExtractionTime(ExtractionController extractionController) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        LocalDateTime now = LocalDateTime.now();
+        extractTime = dtf.format(now);
+    }
 }

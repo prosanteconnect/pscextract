@@ -1,23 +1,20 @@
 package fr.ans.psc.pscextract;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import fr.ans.psc.model.Ps;
 import fr.ans.psc.pscextract.controller.ExtractionController;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -25,7 +22,12 @@ import org.springframework.test.context.DynamicPropertySource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 @SpringBootTest
 @ContextConfiguration(classes = PscextractApplication.class)
@@ -33,16 +35,17 @@ import java.util.List;
 class ExtractionControllerTests {
 
   @Autowired
-    private ExtractionController controller;
+  private ExtractionController controller;
 
-  /** The http mock server. */
+  /**
+   * The http mock server.
+   */
   @RegisterExtension
   static WireMockExtension httpMockServer = WireMockExtension.newInstance()
           .options(wireMockConfig().dynamicPort().usingFilesUnderClasspath("wiremock")).build();
 
   /**
    * Register pg properties.
-   *
    * @param propertiesRegistry the properties registry
    */
   // For use with mockMvc
@@ -58,29 +61,12 @@ class ExtractionControllerTests {
   }
 
   @Test
-  void extractGenerationTest() throws IOException {
+  void singlePageExtractionAndResultConformityTest() throws IOException {
 
-    String responseFilename = "3p";
-    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/api/mappings/" + responseFilename + ".json")
+    String responseFilename = "multiple-work-situations-result";
+    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt")
             .getPath();
-    byte[] responseByteArray = readFileToBytes(responsePath);
-
-//    httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
-//            .willReturn(aResponse()
-//                    .withStatus(200)
-//                    .withHeader("Content-Type", "application/json")
-//                    .withBodyFile("page1size1.json")));
-//    httpMockServer.stubFor(get("/v2/ps?page=1&size=1")
-//            .willReturn(aResponse()
-//                    .withStatus(200)
-//                    .withHeader("Content-Type", "application/json")
-//                    .withBodyFile("page2size1.json")));
-//    httpMockServer.stubFor(get("/v2/ps?page=2&size=1")
-//            .willReturn(aResponse()
-//                    .withStatus(200)
-//                    .withHeader("Content-Type", "application/json")
-//                    .withBodyFile("page3size1.json")));
-//    httpMockServer.stubFor(get("/v2/ps?page=3&size=1").willReturn(aResponse().withStatus(410)));
+    byte[] expectedResponseBytes = readFileToBytes(responsePath);
 
     httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
             .willReturn(aResponse()
@@ -91,9 +77,112 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(420)));
 
-    ResponseEntity<List<Ps>> response = controller.generateExtractAndGetFile();
+    ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
 
-    System.out.println(response.getBody());
+    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+    InputStream stream = null;
+
+    while (enumeration.hasMoreElements()) {
+      ZipEntry zipEntry = enumeration.nextElement();
+      stream = zipFile.getInputStream(zipEntry);
+    }
+    byte[] responseBytes = stream.readAllBytes();
+
+    zipFile.close();
+    stream.close();
+
+    String expected = new String(expectedResponseBytes, StandardCharsets.UTF_8);
+    String actual = new String(responseBytes, StandardCharsets.UTF_8);
+
+    Assertions.assertEquals(expected, actual);
+  }
+
+  @Test
+  void multiplePagesExtractionAndResultConformityTest() throws IOException {
+    String responseFilename = "multiple-pages-result";
+    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt")
+            .getPath();
+    byte[] expectedResponseBytes = readFileToBytes(responsePath);
+
+    httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("page1size1.json")));
+    httpMockServer.stubFor(get("/v2/ps?page=1&size=1")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("page2size1.json")));
+    httpMockServer.stubFor(get("/v2/ps?page=2&size=1")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("page3size1.json")));
+    httpMockServer.stubFor(get("/v2/ps?page=3&size=1")
+            .willReturn(aResponse()
+                    .withStatus(410)));
+
+    ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
+
+    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+    InputStream stream = null;
+
+    while (enumeration.hasMoreElements()) {
+      ZipEntry zipEntry = enumeration.nextElement();
+      stream = zipFile.getInputStream(zipEntry);
+    }
+    byte[] responseBytes = stream.readAllBytes();
+
+    zipFile.close();
+    stream.close();
+
+    String expected = new String(expectedResponseBytes, StandardCharsets.UTF_8);
+    String actual = new String(responseBytes, StandardCharsets.UTF_8);
+
+    Assertions.assertEquals(expected, actual);
+  }
+
+  @Test
+  void noPagesExtractionTest() throws IOException {
+    httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
+            .willReturn(aResponse()
+                    .withStatus(410)));
+
+      ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
+      Assertions.assertThrows(NullPointerException.class, () -> {
+        response.getBody().toString();
+      });
+  }
+
+  @Test
+  void emptyPsExtractionTest() throws IOException {
+    httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("empty-ps.json")));
+
+    ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
+
+    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+    InputStream stream = null;
+
+    while (enumeration.hasMoreElements()) {
+      ZipEntry zipEntry = enumeration.nextElement();
+      stream = zipFile.getInputStream(zipEntry);
+    }
+    byte[] responseBytes = stream.readAllBytes();
+
+    zipFile.close();
+    stream.close();
+
+    String actual = new String(responseBytes, StandardCharsets.UTF_8);
+
+    System.out.println(actual);
   }
 
   private static byte[] readFileToBytes(String filePath) throws IOException {
