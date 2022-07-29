@@ -74,6 +74,7 @@ job "pscextract" {
         JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx1792m -XX:+UseG1GC"
       }
       config {
+        extra_hosts = [ "psc-api-maj.internal:$\u007BNOMAD_IP_http\u007D" ]
         image = "${artifact.image}:${artifact.tag}"
         volumes = [
           "name=pscextract-data,io_priority=high,size=10,repl=3:/app/extract-repo"
