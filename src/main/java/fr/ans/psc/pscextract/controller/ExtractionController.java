@@ -2,7 +2,6 @@ package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.ApiClient;
 import fr.ans.psc.api.PsApi;
-import fr.ans.psc.model.Ps;
 import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.EmailService;
 import fr.ans.psc.pscextract.service.ExportService;
@@ -18,39 +17,24 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @RestController
 public class ExtractionController {
 
     private final String ZIP_EXTENSION = ".zip";
     private final String TXT_EXTENSION = ".txt";
-
-    private String extractTime ="197001010001";
 
     @Value("${working.directory}")
     private String workingDirectory;
@@ -209,102 +193,31 @@ public class ExtractionController {
 
     }
 
+    @PostMapping(value = "/generate-extract-2")
+    public void generateExtract2() {
+
+            try {
+                instantiateApi();
+                transformationService.extractToCsv(this);
+                FileNamesUtil.cleanup(filesDirectory, extractTestName);
+
+                File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+                emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
+            } catch (IOException e) {
+                log.error("Exception raised :", e);
+            }
+    }
+
     @GetMapping(value = "/extract-download")
     @ResponseBody
     public ResponseEntity generateExtractAndGetFile() throws IOException {
 
-        ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath(apiBaseUrl);
-        this.psApi = new PsApi(apiClient);
-        log.info("Api client with url "+apiBaseUrl+" created");
+        instantiateApi();
 
-        File tempExtractFile = File.createTempFile("tempExtract", "tmp");
-        BufferedWriter bw = Files.newBufferedWriter(tempExtractFile.toPath(), StandardCharsets.UTF_8);
-        log.info("BufferedWriter initialized");
-
-        String header = "Type d'identifiant PP|Identifiant PP|Identification nationale PP|Nom de famille|Prénoms|" +
-        "Date de naissance|Code commune de naissance|Code pays de naissance|Lieu de naissance|Code sexe|" +
-        "Téléphone (coord. correspondance)|Adresse e-mail (coord. correspondance)|Code civilité|Code profession|" +
-        "Code catégorie professionnelle|Code civilité d'exercice|Nom d'exercice|Prénom d'exercice|" +
-        "Code type savoir-faire|Code savoir-faire|Code mode exercice|Code secteur d'activité|" +
-        "Code section tableau pharmaciens|Code rôle|Numéro SIRET site|Numéro SIREN site|Numéro FINESS site|" +
-        "Numéro FINESS établissement juridique|Identifiant technique de la structure|Raison sociale site|" +
-        "Enseigne commerciale site|Complément destinataire (coord. structure)|" +
-        "Complément point géographique (coord. structure)|Numéro Voie (coord. structure)|" +
-        "Indice répétition voie (coord. structure)|Code type de voie (coord. structure)|" +
-        "Libellé Voie (coord. structure)|Mention distribution (coord. structure)|" +
-        "Bureau cedex (coord. structure)|Code postal (coord. structure)|Code commune (coord. structure)|" +
-        "Code pays (coord. structure)|Téléphone (coord. structure)|Téléphone 2 (coord. structure)|" +
-        "Télécopie (coord. structure)|Adresse e-mail (coord. structure)|Code département (coord. structure)|" +
-        "Ancien identifiant de la structure|Autorité d'enregistrement|Autres identifiants|Code genre d'activité|\n";
-        bw.write(header);
-        log.info("Header written");
-
-
-        transformationService.setExtractionTime(this);
-
-        Integer page = 0;
-        List<Ps> responsePsList;
-        List<Ps> tempPsList;
-
-        log.info("Starting extraction at "+apiBaseUrl);
-
-        try {
-            BigDecimal size = BigDecimal.valueOf(pageSize);
-            List<Ps> response = psApi.getPsByPage(BigDecimal.valueOf(page), size);
-            log.info("Page "+page+" of size "+size+" received");
-            Boolean outOfPages = false;
-
-            do {
-                responsePsList = response;
-                tempPsList = transformationService.unwind(responsePsList);
-
-                for (Ps ps : tempPsList) {
-                    bw.write(transformationService.transformPsToLine(ps, this));
-                    log.info("Ps "+ps.getId()+" transformed and written");
-                }
-                page++;
-                try {
-                    response =psApi.getPsByPage(BigDecimal.valueOf(page),size);
-                    log.info("Page "+page+" of size"+size+" received");
-                }catch( RestClientException e ){
-                    log.warn("Out of pages: "+e.getMessage());
-                    outOfPages = true;
-                }
-                } while ( !outOfPages );
-        }catch (RestClientException e) {
-            log.error("No pages found :", e);
-            return new ResponseEntity<>(null, null, HttpStatus.NO_CONTENT);
+        File extractFile = transformationService.extractToCsv(this);
+        if(extractFile == null){
+            return new ResponseEntity<>(null, null, HttpStatus.OK);
         }
-        finally {
-            bw.close();
-            log.info("BufferedWriter closed");
-        }
-
-
-        InputStream fileContent = new FileInputStream(tempExtractFile);
-        log.info("File content read");
-
-        ZipEntry zipEntry = new ZipEntry(transformationService.getFileNameWithExtension(TXT_EXTENSION, this));
-        zipEntry.setTime(System.currentTimeMillis());
-        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(workingDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))));
-        zos.putNextEntry(zipEntry);
-        StreamUtils.copy(fileContent, zos);
-
-        fileContent.close();
-        zos.closeEntry();
-        zos.finish();
-        zos.close();
-
-
-        tempExtractFile.delete();
-        log.info("Temp file at "+tempExtractFile.getAbsolutePath()+" deleted");
-
-        Files.move(Path.of(FileNamesUtil.getFilePath(workingDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))),
-                Path.of(FileNamesUtil.getFilePath(filesDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))));
-        log.info("File at "+FileNamesUtil.getFilePath(workingDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this))+" moved to "+FileNamesUtil.getFilePath(filesDirectory, transformationService.getFileNameWithExtension(ZIP_EXTENSION, this)));
-
-        File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
         log.info("File "+extractFile.getName()+" created");
 
         FileSystemResource resource = new FileSystemResource(extractFile);
@@ -316,6 +229,13 @@ public class ExtractionController {
 
 
         return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
+    }
+
+    private void instantiateApi() {
+        ApiClient apiClient = new ApiClient();
+        apiClient.setBasePath(apiBaseUrl);
+        this.psApi = new PsApi(apiClient);
+        log.info("Api client with url "+apiBaseUrl+" created");
     }
 
     @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -330,4 +250,33 @@ public class ExtractionController {
         }
 
     }
+
+    public String getZIP_EXTENSION() {
+        return ZIP_EXTENSION;
+    }
+
+    public String getTXT_EXTENSION() {
+        return TXT_EXTENSION;
+    }
+
+    public String getWorkingDirectory() {
+        return workingDirectory;
+    }
+
+    public PsApi getPsApi() {
+        return psApi;
+    }
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    public String getFilesDirectory() {
+        return filesDirectory;
+    }
+
+    public Integer getPageSize() {
+        return pageSize;
+    }
+
 }

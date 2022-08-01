@@ -14,14 +14,14 @@ import java.util.List;
 @Component
 public class CloneUtil {
 
-  public static Ps clonePs(Ps sourcePs, Profession sourceProfession, Expertise sourceExpertise, WorkSituation sourceWorkSituation){
+  public static Ps clonePs(Ps sourcePs, Profession sourceProfession, Expertise sourceExpertise, WorkSituation sourceWorkSituation) {
     Ps targetPs = new Ps();
     targetPs.setIdType(sourcePs.getIdType());
     targetPs.setId(sourcePs.getId());
     targetPs.setNationalId(sourcePs.getNationalId());
     targetPs.setLastName(sourcePs.getLastName());
 
-    if(sourcePs.getFirstNames() != null) {
+    if (sourcePs.getFirstNames() != null) {
       List<FirstName> targetFirstNames = new ArrayList<>();
       for (FirstName firstName : sourcePs.getFirstNames()) {
         targetFirstNames.add(new FirstName(firstName.getFirstName(), firstName.getOrder()));
@@ -42,12 +42,8 @@ public class CloneUtil {
     targetProfessions.add(cloneProfession(sourceProfession, sourceExpertise, sourceWorkSituation));
     targetPs.setProfessions(targetProfessions);
 
-    if(sourcePs.getIds()!=null) {
-      List<String> targetIds = new ArrayList<>();
-      for (String id : sourcePs.getIds()) {
-        targetIds.add(id);
-      }
-      targetPs.setIds(targetIds);
+    if (sourcePs.getIds() != null) {
+      targetPs.setIds(new ArrayList<>(sourcePs.getIds()));
     }
     targetPs.setActivated(sourcePs.getActivated());
     targetPs.setDeactivated(sourcePs.getDeactivated());
@@ -55,7 +51,9 @@ public class CloneUtil {
     return targetPs;
   }
 
-  public static Profession cloneProfession(Profession sourceProfession, Expertise sourceExpertise, WorkSituation sourceWorkSituation){
+  public static Profession cloneProfession(Profession sourceProfession, Expertise sourceExpertise, WorkSituation sourceWorkSituation) {
+    if (sourceProfession == null) return null;
+
     Profession targetProfession = new Profession();
 
     targetProfession.setExProId(sourceProfession.getExProId());
@@ -76,7 +74,9 @@ public class CloneUtil {
     return targetProfession;
   }
 
-  public static Expertise cloneExpertise(Expertise sourceExpertise){
+  public static Expertise cloneExpertise(Expertise sourceExpertise) {
+    if (sourceExpertise == null) return null;
+
     Expertise targetExpertise = new Expertise();
 
     targetExpertise.setExpertiseId(sourceExpertise.getExpertiseId());
@@ -86,7 +86,9 @@ public class CloneUtil {
     return targetExpertise;
   }
 
-  public static WorkSituation cloneWorkSituation(WorkSituation sourceWorkSituation){
+  public static WorkSituation cloneWorkSituation(WorkSituation sourceWorkSituation) {
+    if (sourceWorkSituation == null) return null;
+
     WorkSituation targetWorkSituation = new WorkSituation();
 
     targetWorkSituation.setSituId(sourceWorkSituation.getSituId());
@@ -101,7 +103,7 @@ public class CloneUtil {
     return targetWorkSituation;
   }
 
-  public static Structure cloneStructure(Structure sourceStructure){
+  public static Structure cloneStructure(Structure sourceStructure) {
     if (sourceStructure == null)
       return null;
     Structure targetStructure = new Structure();
