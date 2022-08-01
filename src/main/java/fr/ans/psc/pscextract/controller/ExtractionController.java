@@ -2,9 +2,7 @@ package fr.ans.psc.pscextract.controller;
 
 import fr.ans.psc.ApiClient;
 import fr.ans.psc.api.PsApi;
-import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.EmailService;
-import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -21,262 +19,167 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RestController
 public class ExtractionController {
 
-    private final String ZIP_EXTENSION = ".zip";
-    private final String TXT_EXTENSION = ".txt";
-
     @Value("${working.directory}")
-    private String workingDirectory;
+  private String workingDirectory;
 
-    PsApi psApi;
+  PsApi psApi;
 
-    @Value("${api.base.url}")
-    private String apiBaseUrl;
+  @Value("${api.base.url}")
+  private String apiBaseUrl;
 
-    @Autowired
-    ExportService exportService;
+  @Autowired
+  TransformationService transformationService;
 
-    @Autowired
-    AggregationService aggregationService;
+  @Autowired
+  EmailService emailService;
 
-    @Autowired
-    TransformationService transformationService;
+  @Value("${files.directory}")
+  private String filesDirectory;
 
-    @Autowired
-    EmailService emailService;
+  @Value("${page.size}")
+  private Integer pageSize;
 
-    @Value("${files.directory}")
-    private String filesDirectory;
+  @Value("${extract.test.name}")
+  public String extractTestName;
 
-    @Value("${page.size}")
-    private Integer pageSize;
+  @Value("${extract.name}")
+  private String extractName;
 
+  /**
+   * logger.
+   */
+  private static final Logger log = LoggerFactory.getLogger(ExtractionController.class);
 
+  @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_VALUE)
+  public String index() {
+    return "alive";
+  }
 
-    @Value("${extract.test.name}")
-    public String extractTestName;
+  @GetMapping(value = "/files", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public String listFiles() {
+    return Stream.of(Objects.requireNonNull(new File(filesDirectory).listFiles()))
+            .filter(file -> !file.isDirectory())
+            .map(file -> file.getName() + ":" + file.length())
+            .collect(Collectors.toSet()).toString();
+  }
 
-    @Value("${extract.name}")
-    private String extractName;
+  @GetMapping(value = "/download")
+  @ResponseBody
+  public ResponseEntity<FileSystemResource> getFile() {
+    File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
 
-    /**
-     * logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(ExtractionController.class);
+    if (extractFile != null) {
+      FileSystemResource resource = new FileSystemResource(extractFile);
 
-    @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_VALUE)
-    public String index() {
-        return "alive";
+      HttpHeaders responseHeaders = new HttpHeaders();
+      responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
+      responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+      responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractFile.length()));
+
+      log.info("download done");
+      return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
+    } else {
+      log.error("download failed");
+      return new ResponseEntity<>(null, null, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @GetMapping(value = "/download/test")
+  @ResponseBody
+  public ResponseEntity<FileSystemResource> getDemoExtractFile() {
+    File extractTestFile = new File(FileNamesUtil.getFilePath(filesDirectory, extractTestName));
+
+    if (extractTestFile.exists()) {
+      FileSystemResource resource = new FileSystemResource(extractTestFile);
+
+      HttpHeaders responseHeaders = new HttpHeaders();
+      responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractTestFile.getName());
+      responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+      responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractTestFile.length()));
+
+      log.info("download done");
+      return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
+    } else {
+      log.error("download failed");
+      return new ResponseEntity<>(null, null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping(value = "/files", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public String listFiles() {
-        return Stream.of(Objects.requireNonNull(new File(filesDirectory).listFiles()))
-                .filter(file -> !file.isDirectory())
-                .map(file -> file.getName() + ":" + file.length())
-                .collect(Collectors.toSet()).toString();
+  }
+
+  @PostMapping(value = "/generate-extract")
+  public void generateExtract() {
+
+    try {
+      instantiateApi();
+      File latestExtract = transformationService.extractToCsv(this);
+      FileNamesUtil.cleanup(filesDirectory, extractTestName);
+
+      if(latestExtract != null)
+      emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
+      else
+        emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
+    } catch (IOException e) {
+      log.error("Exception raised :", e);
+    }
+  }
+
+  private void instantiateApi() {
+    ApiClient apiClient = new ApiClient();
+    apiClient.setBasePath(apiBaseUrl);
+    this.psApi = new PsApi(apiClient);
+    log.info("Api client with url " + apiBaseUrl + " created");
+  }
+
+  @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
+  public String cleanAll() {
+    try {
+      FileUtils.cleanDirectory(new File(filesDirectory));
+      log.info("all files in {} were deleted!", filesDirectory);
+      return "all files in storage were deleted";
+    } catch (IOException e) {
+      log.error("cleaning directory failed", e);
+      return "cleaning directory failed";
     }
 
-    @PostMapping(value = "/aggregate")
-    public String aggregate() {
-        ForkJoinPool.commonPool().submit(() -> {
-            try {
-                aggregationService.aggregate();
-            } catch (Exception e) {
-                log.error("Error during aggregation", e);
-            }
-            log.info("Aggregation done.");
-        });
-        return "Aggregating...";
-    }
+  }
 
-    @PostMapping(value = "/export")
-    public String export() {
-        ForkJoinPool.commonPool().submit(() -> {
-            try {
-                exportService.export();
-            } catch (IOException | InterruptedException e) {
-                log.error("Error during export", e);
-            }
-        });
-        return "Exporting...";
-    }
+  public String getZIP_EXTENSION() {
+    return ".zip";
+  }
 
-    @PostMapping(value = "/transform")
-    public DeferredResult<ResponseEntity<String>> transform() {
-        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
-        ForkJoinPool.commonPool().submit(() -> {
-            try {
-                transformationService.transformCsv();
-                FileNamesUtil.cleanup(filesDirectory, extractTestName);
-                log.info("Transformation done.");
-                output.setResult(ResponseEntity.ok("Transformation done."));
-            } catch (IOException e) {
-                log.error("Error during transformation", e);
-                log.error(e.getMessage());
-            }
-        });
-        return output;
-    }
+  public String getTXT_EXTENSION() {
+    return ".txt";
+  }
 
-    @PostMapping(value = "/generate-extract")
-    public void generateExtract() {
-        ForkJoinPool.commonPool().submit(() -> {
-            try {
-                aggregationService.aggregate();
-                exportService.export();
-                transformationService.transformCsv();
-                FileNamesUtil.cleanup(filesDirectory, extractTestName);
+  public String getWorkingDirectory() {
+    return workingDirectory;
+  }
 
-                File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-                emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
-            } catch (IOException | InterruptedException e) {
-                log.error("Exception raised :", e);
-            }
-        });
-    }
+  public PsApi getPsApi() {
+    return psApi;
+  }
 
-    @GetMapping(value = "/download")
-    @ResponseBody
-    public ResponseEntity getFile() {
-        File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+  public String getApiBaseUrl() {
+    return apiBaseUrl;
+  }
 
-        if (extractFile != null) {
-                FileSystemResource resource = new FileSystemResource(extractFile);
+  public String getFilesDirectory() {
+    return filesDirectory;
+  }
 
-                HttpHeaders responseHeaders = new HttpHeaders();
-                responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
-                responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
-                responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractFile.length()));
-
-                log.info("download done");
-                return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
-        }
-        else {
-            log.error("download failed");
-            return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @GetMapping(value="/download/test")
-    @ResponseBody
-    public ResponseEntity getDemoExtractFile() {
-        File extractTestFile = new File(FileNamesUtil.getFilePath(filesDirectory, extractTestName));
-
-        if (extractTestFile.exists()) {
-            FileSystemResource resource = new FileSystemResource(extractTestFile);
-
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractTestFile.getName());
-            responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
-            responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractTestFile.length()));
-
-            log.info("download done");
-            return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
-        }
-        else {
-            log.error("download failed");
-            return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
-        }
-
-    }
-
-    @PostMapping(value = "/generate-extract-2")
-    public void generateExtract2() {
-
-            try {
-                instantiateApi();
-                transformationService.extractToCsv(this);
-                FileNamesUtil.cleanup(filesDirectory, extractTestName);
-
-                File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-                emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
-            } catch (IOException e) {
-                log.error("Exception raised :", e);
-            }
-    }
-
-    @GetMapping(value = "/extract-download")
-    @ResponseBody
-    public ResponseEntity generateExtractAndGetFile() throws IOException {
-
-        instantiateApi();
-
-        File extractFile = transformationService.extractToCsv(this);
-        if(extractFile == null){
-            return new ResponseEntity<>(null, null, HttpStatus.OK);
-        }
-        log.info("File "+extractFile.getName()+" created");
-
-        FileSystemResource resource = new FileSystemResource(extractFile);
-
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + extractFile.getName());
-        responseHeaders.add(HttpHeaders.CONTENT_TYPE, "application/zip");
-        responseHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(extractFile.length()));
-
-
-        return new ResponseEntity<>(resource, responseHeaders, HttpStatus.OK);
-    }
-
-    private void instantiateApi() {
-        ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath(apiBaseUrl);
-        this.psApi = new PsApi(apiClient);
-        log.info("Api client with url "+apiBaseUrl+" created");
-    }
-
-    @PostMapping(value = "/clean-all", produces = MediaType.APPLICATION_JSON_VALUE)
-    public String cleanAll()  {
-        try {
-            FileUtils.cleanDirectory(new File(filesDirectory));
-            log.info("all files in {} were deleted!", filesDirectory);
-            return "all files in storage were deleted";
-        } catch (IOException e) {
-            log.error("cleaning directory failed", e);
-            return "cleaning directory failed";
-        }
-
-    }
-
-    public String getZIP_EXTENSION() {
-        return ZIP_EXTENSION;
-    }
-
-    public String getTXT_EXTENSION() {
-        return TXT_EXTENSION;
-    }
-
-    public String getWorkingDirectory() {
-        return workingDirectory;
-    }
-
-    public PsApi getPsApi() {
-        return psApi;
-    }
-
-    public String getApiBaseUrl() {
-        return apiBaseUrl;
-    }
-
-    public String getFilesDirectory() {
-        return filesDirectory;
-    }
-
-    public Integer getPageSize() {
-        return pageSize;
-    }
+  public Integer getPageSize() {
+    return pageSize;
+  }
 
 }

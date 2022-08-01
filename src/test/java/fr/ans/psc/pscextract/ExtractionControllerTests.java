@@ -5,31 +5,28 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import fr.ans.psc.model.Ps;
 import fr.ans.psc.pscextract.controller.ExtractionController;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
-import java.io.File;
-import java.io.FileInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Enumeration;
-import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -64,11 +61,16 @@ class ExtractionControllerTests {
 
   }
 
+  @BeforeEach
+  private void Clean() {
+    controller.cleanAll();
+  }
+
   @Test
   void singlePageExtractionAndResultConformityTest() throws IOException {
 
     String responseFilename = "multiple-work-situations-result";
-    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt")
+    String responsePath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt"))
             .getPath().substring(1);
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
@@ -81,9 +83,10 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(420)));
 
-    ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    ResponseEntity<FileSystemResource> response = controller.getFile();
 
-    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
     Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
     InputStream stream = null;
 
@@ -91,6 +94,7 @@ class ExtractionControllerTests {
       ZipEntry zipEntry = enumeration.nextElement();
       stream = zipFile.getInputStream(zipEntry);
     }
+    assert stream != null;
     byte[] responseBytes = stream.readAllBytes();
 
     zipFile.close();
@@ -105,7 +109,7 @@ class ExtractionControllerTests {
   @Test
   void multiplePagesExtractionAndResultConformityTest() throws IOException {
     String responseFilename = "multiple-pages-result";
-    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt")
+    String responsePath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt"))
             .getPath().substring(1);
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
@@ -128,9 +132,10 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(410)));
 
-    ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    ResponseEntity<FileSystemResource> response = controller.getFile();
 
-    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
     Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
     InputStream stream = null;
 
@@ -138,6 +143,7 @@ class ExtractionControllerTests {
       ZipEntry zipEntry = enumeration.nextElement();
       stream = zipFile.getInputStream(zipEntry);
     }
+    assert stream != null;
     byte[] responseBytes = stream.readAllBytes();
 
     zipFile.close();
@@ -150,22 +156,21 @@ class ExtractionControllerTests {
   }
 
   @Test
-  void noPagesExtractionTest() throws IOException {
+  void noPagesExtractionTest() {
     httpMockServer.stubFor(get("/v2/ps?page=0&size=1")
             .willReturn(aResponse()
                     .withStatus(410)));
 
-      ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
-      Assertions.assertThrows(NullPointerException.class, () -> {
-        System.out.println(response.getBody().toString());
-      });
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    ResponseEntity<FileSystemResource> response = controller.getFile();
+    Assertions.assertThrows(NullPointerException.class, () -> System.out.println(Objects.requireNonNull(response.getBody())));
   }
 
   @Test
   void emptyPsExtractionTest() throws IOException {
 
     String responseFilename = "empty-ps-result";
-    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt")
+    String responsePath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt"))
             .getPath().substring(1);
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
@@ -178,9 +183,10 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(420)));
 
-    ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    ResponseEntity<FileSystemResource> response = controller.getFile();
 
-    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
     Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
     InputStream stream = null;
 
@@ -188,6 +194,7 @@ class ExtractionControllerTests {
       ZipEntry zipEntry = enumeration.nextElement();
       stream = zipFile.getInputStream(zipEntry);
     }
+    assert stream != null;
     byte[] responseBytes = stream.readAllBytes();
 
     zipFile.close();
@@ -203,7 +210,7 @@ class ExtractionControllerTests {
   void fullyEmptyPsExtractionTest() throws IOException {
 
     String responseFilename = "very-empty-ps-result";
-    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt")
+    String responsePath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt"))
             .getPath().substring(1);
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
@@ -216,9 +223,10 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(420)));
 
-    ResponseEntity<FileSystemResource> response = controller.generateExtractAndGetFile();
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    ResponseEntity<FileSystemResource> response = controller.getFile();
 
-    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
     Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
     InputStream stream = null;
 
@@ -226,6 +234,7 @@ class ExtractionControllerTests {
       ZipEntry zipEntry = enumeration.nextElement();
       stream = zipFile.getInputStream(zipEntry);
     }
+    assert stream != null;
     byte[] responseBytes = stream.readAllBytes();
 
     zipFile.close();
@@ -238,9 +247,9 @@ class ExtractionControllerTests {
   }
 
   @Test
-  void generateExtract2Test () throws IOException {
+  void generateExtractTest() throws IOException {
     String responseFilename = "multiple-pages-result";
-    String responsePath = Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt")
+    String responsePath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("wiremock/__files/" + responseFilename + ".txt"))
             .getPath().substring(1);
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
@@ -263,11 +272,11 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(410)));
 
-    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class,() -> {controller.generateExtract2();});
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
 
     ResponseEntity<FileSystemResource> response = controller.getFile();
 
-    ZipFile zipFile = new ZipFile(response.getBody().getFile());
+    ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
     Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
     InputStream stream = null;
 
@@ -275,6 +284,7 @@ class ExtractionControllerTests {
       ZipEntry zipEntry = enumeration.nextElement();
       stream = zipFile.getInputStream(zipEntry);
     }
+    assert stream != null;
     byte[] responseBytes = stream.readAllBytes();
 
     zipFile.close();
