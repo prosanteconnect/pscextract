@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -126,7 +127,24 @@ public class ExtractionController {
       FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
       if(latestExtract != null)
-      emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
+        emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
+      else
+        emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
+    } catch (IOException e) {
+      log.error("Exception raised :", e);
+    }
+
+  }  @PostMapping(value = "/generate-extract")
+  public void generateExtract(@RequestParam int pageSize) {
+
+    try {
+      this.pageSize=pageSize;
+      instantiateApi();
+      File latestExtract = transformationService.extractToCsv(this);
+      FileNamesUtil.cleanup(filesDirectory, extractTestName);
+
+      if(latestExtract != null)
+        emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
       else
         emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
     } catch (IOException e) {
