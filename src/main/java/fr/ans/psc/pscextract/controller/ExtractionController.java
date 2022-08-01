@@ -134,7 +134,7 @@ public class ExtractionController {
       log.error("Exception raised :", e);
     }
 
-  }  @PostMapping(value = "/generate-extract")
+  }  @PostMapping(value = "/generate-extract-page-size")
   public void generateExtract(@RequestParam int pageSize) {
 
     try {
