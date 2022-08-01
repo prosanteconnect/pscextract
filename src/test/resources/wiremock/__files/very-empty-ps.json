@@ -1,0 +1,34 @@
+[
+  {
+  },
+  {
+    "professions": [{}]
+  },
+  {
+    "professions": [
+      {
+        "workSituations": [
+          {}
+        ]
+      }
+    ]
+  },
+  {
+    "professions": [
+    {
+      "expertises": [{}]
+    }
+  ]},
+  {
+    "professions": [
+      {
+        "workSituations": [
+          {
+            "structure": {
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
