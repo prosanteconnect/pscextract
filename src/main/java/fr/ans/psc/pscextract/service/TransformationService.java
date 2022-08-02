@@ -142,7 +142,7 @@ public class TransformationService {
     return unwoundPsList;
   }
 
-  public String transformPsToLine(Ps ps, ExtractionController extractionController) {
+  public String transformPsToLine(Ps ps) {
     String activityCode = null;
     StringBuilder sb = new StringBuilder();
     sb.append(Optional.ofNullable(ps.getIdType()).orElse("")).append("|");
@@ -276,7 +276,7 @@ public class TransformationService {
         tempPsList = unwind(responsePsList);
 
         for (Ps ps : tempPsList) {
-          bw.write(transformPsToLine(ps, extractionController));
+          bw.write(transformPsToLine(ps));
           log.info("Ps " + ps.getId() + " transformed and written");
         }
         page++;
