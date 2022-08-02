@@ -24,13 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RestController
 public class ExtractionController {
 
-    @Value("${working.directory}")
+  @Value("${working.directory}")
   private String workingDirectory;
 
   PsApi psApi;
@@ -120,30 +121,33 @@ public class ExtractionController {
 
   @PostMapping(value = "/generate-extract")
   public void generateExtract() {
-
+//    ForkJoinPool.commonPool().execute( () -> {
     try {
       instantiateApi();
       File latestExtract = transformationService.extractToCsv(this);
       FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
-      if(latestExtract != null)
+      if (latestExtract != null)
         emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
       else
         emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
     } catch (IOException e) {
       log.error("Exception raised :", e);
     }
+//    });
+  }
 
-  }  @PostMapping(value = "/generate-extract-page-size")
+  @PostMapping(value = "/generate-extract-page-size")
   public void generateExtract(@RequestParam int pageSize) {
 
     try {
-      this.pageSize=pageSize;
-      instantiateApi();
+      this.pageSize = pageSize;
+      if (this.psApi == null)
+        instantiateApi();
       File latestExtract = transformationService.extractToCsv(this);
       FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
-      if(latestExtract != null)
+      if (latestExtract != null)
         emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
       else
         emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
