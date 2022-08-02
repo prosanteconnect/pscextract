@@ -127,8 +127,8 @@ public class ExtractionController {
         return output;
     }
 
-    @PostMapping(value = "/generate-extract")
-    public void generateExtract() {
+    @PostMapping(value = "/generate-extract-old")
+    public void generateExtractOld() {
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 aggregationService.aggregate();
@@ -188,7 +188,7 @@ public class ExtractionController {
   }
 
   @PostMapping(value = "/generate-extract")
-  public void generateExtractOld() {
+  public void generateExtract() {
 //    ForkJoinPool.commonPool().execute( () -> {
     try {
       instantiateApi();
