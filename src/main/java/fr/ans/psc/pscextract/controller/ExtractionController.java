@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,8 +40,14 @@ public class ExtractionController {
   @Value("${api.base.url}")
   private String apiBaseUrl;
 
-  @Autowired
-  TransformationService transformationService;
+    @Autowired
+    ExportService exportService;
+
+    @Autowired
+    AggregationService aggregationService;
+
+    @Autowired
+    TransformationService transformationService;
 
   @Autowired
   EmailService emailService;
@@ -76,10 +83,69 @@ public class ExtractionController {
             .collect(Collectors.toSet()).toString();
   }
 
-  @GetMapping(value = "/download")
-  @ResponseBody
-  public ResponseEntity<FileSystemResource> getFile() {
-    File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+    @PostMapping(value = "/aggregate")
+    public String aggregate() {
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                aggregationService.aggregate();
+            } catch (Exception e) {
+                log.error("Error during aggregation", e);
+            }
+            log.info("Aggregation done.");
+        });
+        return "Aggregating...";
+    }
+
+    @PostMapping(value = "/export")
+    public String export() {
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                exportService.export();
+            } catch (IOException | InterruptedException e) {
+                log.error("Error during export", e);
+            }
+        });
+        return "Exporting...";
+    }
+
+    @PostMapping(value = "/transform")
+    public DeferredResult<ResponseEntity<String>> transform() {
+        DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                transformationService.transformCsv();
+                FileNamesUtil.cleanup(filesDirectory, extractTestName);
+                log.info("Transformation done.");
+                output.setResult(ResponseEntity.ok("Transformation done."));
+            } catch (IOException e) {
+                log.error("Error during transformation", e);
+                log.error(e.getMessage());
+            }
+        });
+        return output;
+    }
+
+    @PostMapping(value = "/generate-extract")
+    public void generateExtract() {
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                aggregationService.aggregate();
+                exportService.export();
+                transformationService.transformCsv();
+                FileNamesUtil.cleanup(filesDirectory, extractTestName);
+
+                File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
+                emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
+            } catch (IOException | InterruptedException e) {
+                log.error("Exception raised :", e);
+            }
+        });
+    }
+
+    @GetMapping(value = "/download")
+    @ResponseBody
+    public ResponseEntity getFile() {
+        File extractFile = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
 
     if (extractFile != null) {
       FileSystemResource resource = new FileSystemResource(extractFile);
@@ -120,7 +186,7 @@ public class ExtractionController {
   }
 
   @PostMapping(value = "/generate-extract")
-  public void generateExtract() {
+  public void generateExtractOld() {
 //    ForkJoinPool.commonPool().execute( () -> {
     try {
       instantiateApi();
