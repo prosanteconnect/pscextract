@@ -83,7 +83,7 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(420)));
 
-    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract(null));
     ResponseEntity<FileSystemResource> response = controller.getFile();
 
     ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
@@ -132,7 +132,7 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(410)));
 
-    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract(null));
     ResponseEntity<FileSystemResource> response = controller.getFile();
 
     ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
@@ -161,7 +161,7 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(410)));
 
-    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract(null));
     ResponseEntity<FileSystemResource> response = controller.getFile();
     Assertions.assertThrows(NullPointerException.class, () -> System.out.println(Objects.requireNonNull(response.getBody())));
   }
@@ -183,7 +183,7 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(420)));
 
-    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract(null));
     ResponseEntity<FileSystemResource> response = controller.getFile();
 
     ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
@@ -223,7 +223,7 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(420)));
 
-    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract(null));
     ResponseEntity<FileSystemResource> response = controller.getFile();
 
     ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
@@ -272,8 +272,7 @@ class ExtractionControllerTests {
             .willReturn(aResponse()
                     .withStatus(410)));
 
-    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract());
-
+    Assertions.assertThrows(org.springframework.mail.MailAuthenticationException.class, () -> controller.generateExtract(null));
     ResponseEntity<FileSystemResource> response = controller.getFile();
 
     ZipFile zipFile = new ZipFile(Objects.requireNonNull(response.getBody()).getFile());
