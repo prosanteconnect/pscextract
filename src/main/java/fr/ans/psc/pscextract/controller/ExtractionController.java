@@ -1,11 +1,8 @@
 package fr.ans.psc.pscextract.controller;
 
-import com.sun.istack.NotNull;
 import fr.ans.psc.ApiClient;
 import fr.ans.psc.api.PsApi;
-import fr.ans.psc.pscextract.service.AggregationService;
 import fr.ans.psc.pscextract.service.EmailService;
-import fr.ans.psc.pscextract.service.ExportService;
 import fr.ans.psc.pscextract.service.TransformationService;
 import fr.ans.psc.pscextract.service.utils.FileNamesUtil;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -23,11 +20,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,16 +35,13 @@ public class ExtractionController {
   @Value("${working.directory}")
   private String workingDirectory;
 
-  PsApi psApi;
+  @Value("false")
+  private boolean busy;
+
+  private PsApi psApi;
 
   @Value("${api.base.url}")
   private String apiBaseUrl;
-
-  @Autowired
-  ExportService exportService;
-
-  @Autowired
-  AggregationService aggregationService;
 
   @Autowired
   TransformationService transformationService;
@@ -84,65 +78,6 @@ public class ExtractionController {
             .filter(file -> !file.isDirectory())
             .map(file -> file.getName() + ":" + file.length())
             .collect(Collectors.toSet()).toString();
-  }
-
-  @PostMapping(value = "/aggregate")
-  public String aggregate() {
-    ForkJoinPool.commonPool().submit(() -> {
-      try {
-        aggregationService.aggregate();
-      } catch (Exception e) {
-        log.error("Error during aggregation", e);
-      }
-      log.info("Aggregation done.");
-    });
-    return "Aggregating...";
-  }
-
-  @PostMapping(value = "/export")
-  public String export() {
-    ForkJoinPool.commonPool().submit(() -> {
-      try {
-        exportService.export();
-      } catch (IOException | InterruptedException e) {
-        log.error("Error during export", e);
-      }
-    });
-    return "Exporting...";
-  }
-
-  @PostMapping(value = "/transform")
-  public DeferredResult<ResponseEntity<String>> transform() {
-    DeferredResult<ResponseEntity<String>> output = new DeferredResult<>();
-    ForkJoinPool.commonPool().submit(() -> {
-      try {
-        transformationService.transformCsv();
-        FileNamesUtil.cleanup(filesDirectory, extractTestName);
-        log.info("Transformation done.");
-        output.setResult(ResponseEntity.ok("Transformation done."));
-      } catch (IOException e) {
-        log.error("Error during transformation", e);
-        log.error(e.getMessage());
-      }
-    });
-    return output;
-  }
-
-  @PostMapping(value = "/generate-extract-old")
-  public void generateExtractOld() {
-    ForkJoinPool.commonPool().submit(() -> {
-      try {
-        aggregationService.aggregate();
-        exportService.export();
-        transformationService.transformCsv();
-        FileNamesUtil.cleanup(filesDirectory, extractTestName);
-
-        File latestExtract = FileNamesUtil.getLatestExtract(filesDirectory, extractName);
-        emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
-      } catch (IOException | InterruptedException e) {
-        log.error("Exception raised :", e);
-      }
-    });
   }
 
   @GetMapping(value = "/download")
@@ -189,24 +124,31 @@ public class ExtractionController {
   }
 
   @PostMapping(value = "/generate-extract")
-  public void generateExtract(@RequestParam(required = false) Integer pageSize) {
-    ForkJoinPool.commonPool().submit(() -> {
-      try {
-        if (pageSize != null)
-          this.pageSize = pageSize;
-        if (this.psApi == null)
-          instantiateApi();
-        File latestExtract = transformationService.extractToCsv(this);
-        FileNamesUtil.cleanup(filesDirectory, extractTestName);
+  public Optional<ResponseEntity<?>> generateExtract(@RequestParam(required = false) Integer pageSize) {
+    if(!busy) {
+      ForkJoinPool.commonPool().submit(() -> {
+        try {
+          busy = true;
+          if (pageSize != null)
+            this.pageSize = pageSize;
+          if (this.psApi == null)
+            instantiateApi();
+          File latestExtract = transformationService.extractToCsv(this);
+          FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
-        if (latestExtract != null)
-          emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
-        else
-          emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
-      } catch (IOException e) {
-        log.error("Exception raised :", e);
-      }
-    });
+          if (latestExtract != null)
+            emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
+          else
+            emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
+        } catch (IOException e) {
+          log.error("Exception raised :", e);
+        } finally {
+            busy = false;
+        }
+      });
+    }else
+      return Optional.of(new ResponseEntity<>(HttpStatus.CONFLICT));
+    return Optional.empty();
   }
 
   private void instantiateApi() {
@@ -257,4 +199,7 @@ public class ExtractionController {
     return pageSize;
   }
 
+  public boolean isBusy() {
+    return busy;
+  }
 }
