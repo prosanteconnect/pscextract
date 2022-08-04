@@ -124,7 +124,7 @@ public class ExtractionController {
   }
 
   @PostMapping(value = "/generate-extract")
-  public Optional<ResponseEntity<?>> generateExtract(@RequestParam(required = false) Integer pageSize) {
+  public ResponseEntity<?> generateExtract(@RequestParam(required = false) Integer pageSize) {
     if(!busy) {
       ForkJoinPool.commonPool().submit(() -> {
         try {
@@ -147,8 +147,8 @@ public class ExtractionController {
         }
       });
     }else
-      return Optional.of(new ResponseEntity<>(HttpStatus.CONFLICT));
-    return Optional.empty();
+      return new ResponseEntity<>(HttpStatus.CONFLICT);
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   private void instantiateApi() {

@@ -228,7 +228,7 @@ class ExtractionControllerTests {
     response = controller.getFile();
     ResponseEntity<FileSystemResource> finalResponse = response;
     assertThrows(NullPointerException.class, () -> Objects.requireNonNull(finalResponse.getBody()).getFile());
-    ResponseEntity<?> responseFailure = controller.generateExtract(null).orElse(null);
+    ResponseEntity<?> responseFailure = controller.generateExtract(null);
     assert responseFailure != null;
     assertEquals(responseFailure.getStatusCode(), HttpStatus.CONFLICT);
   }
