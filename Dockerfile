@@ -8,6 +8,7 @@ FROM openjdk:11-slim-buster
 RUN echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian.org buster main" > /etc/apt/sources.list \
     && echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian.org buster-updates main" >> /etc/apt/sources.list \
     && apt update \
+    && apt install -y --allow-downgrades wget gnupg=2.2.12-1+deb10u1 gpgv=2.2.12-1+deb10u1 dos2unix \
     && wget -qO - http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/www.mongodb.org/static/pgp/server-5.0.asc | apt-key add - \
     && echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian-repo.mongodb.org buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
 RUN apt update
