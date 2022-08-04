@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import java.io.*;
@@ -289,7 +290,7 @@ public class TransformationService {
         try {
           response = extractionController.getPsApi().getPsByPage(BigDecimal.valueOf(page), size);
           log.info("Page " + page + " of size" + size + " received");
-        } catch (HttpClientErrorException e) {
+        } catch (HttpStatusCodeException e) {
           log.warn("Out of pages: " + e.getMessage());
           if(e.getStatusCode()!= HttpStatus.GONE) {
             log.info("Extraction failed, exiting without replacing the extract file");
@@ -303,7 +304,7 @@ public class TransformationService {
           outOfPages = true;
         }
       } while (!outOfPages);
-    } catch (HttpClientErrorException e) {
+    } catch (HttpStatusCodeException e) {
       log.error("No pages found :"+ e.getMessage());
       log.info("Extraction failed, exiting without replacing the extract file");
       if (tempExtractFile.delete()) {
