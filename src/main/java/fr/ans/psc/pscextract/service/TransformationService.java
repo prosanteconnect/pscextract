@@ -303,8 +303,14 @@ public class TransformationService {
           outOfPages = true;
         }
       } while (!outOfPages);
-    } catch (RestClientException e) {
-      log.error("No pages found :", e);
+    } catch (HttpClientErrorException e) {
+      log.error("No pages found :"+ e.getMessage());
+      log.info("Extraction failed, exiting without replacing the extract file");
+      if (tempExtractFile.delete()) {
+        log.info("Temp file at " + tempExtractFile.getAbsolutePath() + " deleted");
+      } else {
+        log.warn("Temp file at " + tempExtractFile.getAbsolutePath() + " not deleted");
+      }
       return null;
     } finally {
       bw.close();
