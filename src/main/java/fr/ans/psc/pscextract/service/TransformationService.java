@@ -284,7 +284,7 @@ public class TransformationService {
 
         for (Ps ps : tempPsList) {
           bw.write(transformPsToLine(ps));
-          log.info("Ps " + ps.getId() + " transformed and written");
+//          log.info("Ps " + ps.getId() + " transformed and written");
         }
         page++;
         try {
