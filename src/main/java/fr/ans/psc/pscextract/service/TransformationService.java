@@ -284,12 +284,12 @@ public class TransformationService {
 
         for (Ps ps : tempPsList) {
           bw.write(transformPsToLine(ps));
-//          log.info("Ps " + ps.getId() + " transformed and written");
+          log.debug("Ps " + ps.getId() + " transformed and written");
         }
         page++;
         try {
           response = extractionController.getPsApi().getPsByPage(BigDecimal.valueOf(page), size);
-          log.info("Page " + page + " of size" + size + " received");
+          log.info("Page " + page + " of size " + size + " received, writing to file...");
         } catch (HttpStatusCodeException e) {
           log.warn("Out of pages: " + e.getMessage());
           if(e.getStatusCode()!= HttpStatus.GONE) {
@@ -319,8 +319,8 @@ public class TransformationService {
     }
 
     InputStream fileContent = new FileInputStream(tempExtractFile);
-    log.info("File content read");
 
+    log.info("Zipping up the extract file...");
     ZipEntry zipEntry = new ZipEntry(getFileNameWithExtension(extractionController.getTXT_EXTENSION()));
     zipEntry.setTime(System.currentTimeMillis());
     ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(FileNamesUtil.getFilePath(extractionController.getWorkingDirectory(), getFileNameWithExtension(extractionController.getZIP_EXTENSION()))));
