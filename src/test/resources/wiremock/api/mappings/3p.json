@@ -1,0 +1,233 @@
+[
+            {
+                  "id": "1",
+                  "nationalId": "111",
+                  "professions": [
+                        {
+                              "exProId": "50C",
+                              "expertises": [
+                                    {
+                                          "expertiseId": "1.1"
+                                    },
+                                    {
+                                          "expertiseId": "1.2"
+                                    }
+                              ],
+                              "workSituations": [
+                                    {
+                                          "situId": "1.1",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "1.2",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "1.3",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    }
+                              ]
+                        }
+                  ],
+                  "activated": 1,
+                  "ids": [
+                        "111"
+                  ]
+            },
+            {"id": "2",
+                  "nationalId": "222",
+                  "professions": [
+                        {
+                              "exProId": "50C",
+                              "expertises": [
+                                    {
+                                          "expertiseId": "1.1"
+                                    },
+                                    {
+                                          "expertiseId": "1.2"
+                                    }
+                              ],
+                              "workSituations": [
+                                    {
+                                          "situId": "1.1",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "1.2",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "1.3",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    }
+                              ]
+                        },
+                        {
+                              "exProId": "50C",
+                              "expertises": [
+                                    {
+                                          "expertiseId": "2.1"
+                                    },
+                                    {
+                                          "expertiseId": "2.2"
+                                    }
+                              ],
+                              "workSituations": [
+                                    {
+                                          "situId": "2.1",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "2.2",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "2.3",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "2.4",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    }
+                              ]
+                        },
+                        {
+                              "exProId": "50C",
+                              "expertises": [
+                                    {
+                                          "expertiseId": "3.1"
+                                    }
+                              ],
+                              "workSituations": [
+                                    {
+                                          "situId": "3.1",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    }
+                              ]
+                        }
+                  ],
+                  "activated": 1,
+                  "deactivated": 0,
+                  "ids": [
+                        "222"
+                  ]
+            },
+            {
+                  "id": "3",
+                  "nationalId": "333",
+                  "professions": [
+                        {
+                              "exProId": "50C",
+                              "expertises": [
+                                    {
+                                          "expertiseId": "1.1"
+                                    },
+                                    {
+                                          "expertiseId": "1.2"
+                                    }
+                              ],
+                              "workSituations": [
+                                    {
+                                          "situId": "1.1",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "1.2",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "1.3",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    }
+                              ]
+                        },
+                        {
+                              "exProId": "50C",
+                              "expertises": [
+                                    {
+                                          "expertiseId": "2.1"
+                                    },
+                                    {
+                                          "expertiseId": "2.2"
+                                    }
+                              ],
+                              "workSituations": [
+                                    {
+                                          "situId": "2.1",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "2.2",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "2.3",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    },
+                                    {
+                                          "situId": "2.4",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    }
+                              ]
+                        },
+                        {
+                              "exProId": "50C",
+                              "expertises": [
+                                    {
+                                          "expertiseId": "3.1"
+                                    }
+                              ],
+                              "workSituations": [
+                                    {
+                                          "situId": "3.1",
+                                          "structure": {
+                                                "structureTechnicalId": "1.1.1"
+                                          }
+                                    }
+                              ]
+                        }
+                  ],
+                  "activated": 1,
+                  "deactivated": 0,
+                  "ids": [
+                        "333"
+                  ]
+            }
+      ]
+

@@ -8,15 +8,15 @@ FROM openjdk:11-slim-buster
 RUN echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian.org buster main" > /etc/apt/sources.list \
     && echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian.org buster-updates main" >> /etc/apt/sources.list \
     && apt update \
-    && apt install -y wget gnupg dos2unix \
+    && apt install -y --allow-downgrades wget gnupg=2.2.12-1+deb10u1 gpgv=2.2.12-1+deb10u1 dos2unix \
     && wget -qO - http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/www.mongodb.org/static/pgp/server-5.0.asc | apt-key add - \
     && echo "deb [trusted=yes] http://repo.proxy-dev-forge.asip.hst.fluxus.net/artifactory/debian-repo.mongodb.org buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list
 RUN apt update
-RUN apt install -y mongodb-database-tools mongodb-mongosh=1.1.9
+RUN apt install -y mongodb-database-tools mongodb-mongosh=1.5.0
 COPY --from=build /usr/src/app/target/pscextract-*.jar /usr/app/pscextract.jar
 RUN mkdir -p /app/extract-repo && mkdir -p /app/resources
 COPY --from=build /usr/src/app/src/main/resources/aggregate.mongo /app/resources/
-RUN chown -R daemon: /app
+RUN usermod -d /app daemon && chown -R daemon: /app
 USER daemon
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/usr/app/pscextract.jar"]

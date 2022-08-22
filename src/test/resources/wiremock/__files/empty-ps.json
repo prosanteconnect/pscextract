@@ -1,0 +1,68 @@
+[
+  {
+    "idType": "",
+    "id": "",
+    "nationalId": "",
+    "lastName": "",
+    "firstNames": [
+      {
+        "firstName": "",
+        "order": 0
+      },
+      {
+        "firstName": "",
+        "order": 1
+      },
+      {
+        "firstName": "",
+        "order": 2
+      }
+    ],
+    "dateOfBirth": "",
+    "birthAddressCode": "",
+    "birthCountryCode": "",
+    "birthAddress": "",
+    "genderCode": "",
+    "phone": "",
+    "email": "",
+    "salutationCode": "",
+    "professions": [
+      {
+        "exProId": "",
+        "expertises": [
+          {
+            "expertiseId": ""
+          },
+          {
+            "expertiseId": ""
+          }
+        ],
+        "workSituations": [
+          {
+            "situId": "",
+            "structure": {
+              "structureTechnicalId": ""
+            }
+          },
+          {
+            "situId": "",
+            "structure": {
+              "structureTechnicalId": ""
+            }
+          },
+          {
+            "situId": "",
+            "structure": {
+              "structureTechnicalId": ""
+            }
+          }
+        ]
+      }
+    ],
+    "activated": "",
+    "ids": [
+      ""
+    ]
+  }
+]
+
