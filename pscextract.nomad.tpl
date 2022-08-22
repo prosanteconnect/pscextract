@@ -74,6 +74,7 @@ job "pscextract" {
         JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx1792m -XX:+UseG1GC"
       }
       config {
+        extra_hosts = [ "psc-api-maj.internal:$\u007BNOMAD_IP_http\u007D" ]
         image = "${artifact.image}:${artifact.tag}"
         volumes = [
           "name=pscextract-data,io_priority=high,size=10,repl=3:/app/extract-repo"
@@ -99,15 +100,19 @@ mongodb.password={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_pas
 mongodb.admin.database=admin
 files.directory=/app/extract-repo
 working.directory=/app/extract-repo/working-directory
+api.base.url=http://psc-api-maj.internal:9999/psc-api-maj/api
+
 extract.name=Extraction_Pro_sante_connect
 extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule.zip
+page.size=50000
+first.name.count=3
 server.servlet.context-path=/pscextract/v1
 spring.mail.host={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_server_host }}{{ end }}
 spring.mail.port={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_server_port }}{{ end }}
 spring.mail.username={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_username }}{{ end }}
 spring.mail.password={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_password }}{{ end }}
 spring.mail.properties.mail.smtp.auth={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_smtp_auth }}{{ end }}
-spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_enable_tns }}{{ end }}
+spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_enable_tls }}{{ end }}
 pscextract.mail.receiver={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_receiver }}{{ end }}
 EOF
         destination = "secrets/application.properties"
