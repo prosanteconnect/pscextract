@@ -43,7 +43,7 @@ app "prosanteconnect/pscextract" {
       jobspec = templatefile("${path.app}/pscextract.nomad.tpl", {
         datacenter = var.datacenter
         nomad_namespace = var.nomad_namespace
-        registry_path = var.registry_path
+        registry_username = var.registry_username
       })
     }
   }
