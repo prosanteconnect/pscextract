@@ -49,18 +49,29 @@ app "prosanteconnect/pscextract" {
 }
 
 variable "datacenter" {
-  type    = string
-  default = "dc1"
+  type = string
+  default = ""
+  env = ["NOMAD_DATACENTER"]
+}
+
+variable "nomad_namespace" {
+  type = string
+  default = ""
+  env = ["NOMAD_NAMESPACE"]
 }
 
 variable "registry_username" {
   type    = string
   default = ""
+  env     = ["REGISTRY_USERNAME"]
+  sensitive = true
 }
 
 variable "registry_password" {
   type    = string
   default = ""
+  env     = ["REGISTRY_PASSWORD"]
+  sensitive = true
 }
 
 variable "dockerfile_path" {
