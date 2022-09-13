@@ -1,16 +1,17 @@
-project = "prosanteconnect/pscextract"
+project = "prosanteconnect/${workspace.name}/pscextract"
 
 # Labels can be specified for organizational purposes.
 labels = { "domaine" = "psc" }
 
 runner {
     enabled = true
+    profile = "secpsc-${workspace.name}"
     data_source "git" {
         url = "https://github.com/prosanteconnect/pscextract.git"
-        ref = var.datacenter
+        ref = "${workspace.name}"
     }
     poll {
-        enabled = true
+        enabled = false
     }
 }
 
@@ -28,9 +29,10 @@ app "prosanteconnect/pscextract" {
     # Uncomment below to use a remote docker registry to push your built images.
     registry {
       use "docker" {
-        image = "${var.registry_path}/pscextract"
+        image = "${var.registry_username}/pscextract"
         tag   = gitrefpretty()
-        encoded_auth = filebase64("/secrets/dockerAuth.json")
+        username = var.registry_username
+        password = var.registry_password
       }
     }
   }
@@ -40,6 +42,7 @@ app "prosanteconnect/pscextract" {
     use "nomad-jobspec" {
       jobspec = templatefile("${path.app}/pscextract.nomad.tpl", {
         datacenter = var.datacenter
+        nomad_namespace = var.nomad_namespace
         registry_path = var.registry_path
       })
     }
