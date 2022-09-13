@@ -17,8 +17,6 @@ runner {
 
 # An application to deploy.
 app "prosanteconnect/pscextract" {
-  # the Build step is required and specifies how an application image should be built and published. In this case,
-  # we use docker-pull, we simply pull an image as is.
   build {
     use "docker" {
       build_args = {
@@ -33,6 +31,7 @@ app "prosanteconnect/pscextract" {
         tag   = gitrefpretty()
         username = var.registry_username
         password = var.registry_password
+        local = true
       }
     }
   }
