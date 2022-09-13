@@ -156,7 +156,7 @@ EOH
         env = true
       }
       config {
-        image = "${registry_path}/filebeat:7.14.2"
+        image = "${registry_username}/filebeat:7.14.2"
       }
     }
   }
