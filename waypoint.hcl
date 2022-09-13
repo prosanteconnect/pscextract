@@ -66,12 +66,12 @@ variable "registry_password" {
 
 variable "dockerfile_path" {
   type = string
-  default = "Dockerfile"
+  default = "Dockerfile.ext"
 }
 
 variable "proxy_address" {
   type = string
-  default = "proxy_address"
+  default = ""
 }
 
 variable "registry_path" {
