@@ -88,7 +88,7 @@ class ExtractionControllerTests {
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
     httpMockServer.stubFor(get("/v2/ps?page=0&size=1").willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBodyFile("multiple-work-situations.json")));
-    httpMockServer.stubFor(get("/v2/ps?page=1&size=1").willReturn(aResponse().withStatus(420)));
+    httpMockServer.stubFor(get("/v2/ps?page=1&size=1").willReturn(aResponse().withStatus(410)));
 
     controller.generateExtract(null);
 
@@ -149,7 +149,7 @@ class ExtractionControllerTests {
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
     httpMockServer.stubFor(get("/v2/ps?page=0&size=1").willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBodyFile("empty-ps.json")));
-    httpMockServer.stubFor(get("/v2/ps?page=1&size=1").willReturn(aResponse().withStatus(420)));
+    httpMockServer.stubFor(get("/v2/ps?page=1&size=1").willReturn(aResponse().withStatus(410)));
 
     controller.generateExtract(null);
 
@@ -173,7 +173,7 @@ class ExtractionControllerTests {
     byte[] expectedResponseBytes = Files.readAllBytes(Paths.get(responsePath));
 
     httpMockServer.stubFor(get("/v2/ps?page=0&size=1").willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBodyFile("very-empty-ps.json")));
-    httpMockServer.stubFor(get("/v2/ps?page=1&size=1").willReturn(aResponse().withStatus(420)));
+    httpMockServer.stubFor(get("/v2/ps?page=1&size=1").willReturn(aResponse().withStatus(410)));
 
     controller.generateExtract(null);
 
