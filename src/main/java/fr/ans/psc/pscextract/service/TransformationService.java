@@ -313,6 +313,9 @@ public class TransformationService {
         log.warn("Temp file at " + tempExtractFile.getAbsolutePath() + " not deleted");
       }
       return null;
+    } catch {
+      log.error("exception raised : ");
+      e.printStackTrace();
     } finally {
       bw.close();
       log.info("BufferedWriter closed");
