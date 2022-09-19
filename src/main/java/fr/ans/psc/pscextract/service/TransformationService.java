@@ -313,7 +313,7 @@ public class TransformationService {
         log.warn("Temp file at " + tempExtractFile.getAbsolutePath() + " not deleted");
       }
       return null;
-    } catch {
+    } catch (Exception e) {
       log.error("exception raised : ");
       e.printStackTrace();
     } finally {
