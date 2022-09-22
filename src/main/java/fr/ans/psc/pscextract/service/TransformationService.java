@@ -314,8 +314,7 @@ public class TransformationService {
       }
       return null;
     } catch (Exception e) {
-      log.error("exception raised : ");
-      e.printStackTrace();
+      log.error("exception raised : ", e);
     } finally {
       bw.close();
       log.info("BufferedWriter closed");
