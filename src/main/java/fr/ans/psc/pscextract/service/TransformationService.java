@@ -276,6 +276,7 @@ public class TransformationService {
       BigDecimal size = BigDecimal.valueOf(extractionController.getPageSize());
       List<Ps> response = extractionController.getPsApi().getPsByPage(BigDecimal.valueOf(page), size);
       assert !response.isEmpty();
+      log.info("number of Ps : {}", response.size());
       log.info("Page " + page + " of size " + size + " received");
       boolean outOfPages = false;
 
@@ -314,6 +315,8 @@ public class TransformationService {
         log.warn("Temp file at " + tempExtractFile.getAbsolutePath() + " not deleted");
       }
       return null;
+    } catch (Exception e) {
+      log.error("exception raised : ", e);
     } finally {
       bw.close();
       log.info("BufferedWriter closed");
