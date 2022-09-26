@@ -118,7 +118,7 @@ public class TransformationService {
     ArrayList<Ps> unwoundPsList = new ArrayList<>();
     Ps tempPs;
     for (Ps ps : psList) {
-      if (ps.getDeactivated() == null || ps.getActivated() > ps.getDeactivated()) {
+      if (ps.getDeactivated() == null || ps.getDeactivated() == null || ps.getActivated() > ps.getDeactivated()) {
         if (ps.getProfessions() == null) {
           tempPs = CloneUtil.clonePs(ps, null, null, null);
           unwoundPsList.add(tempPs);
