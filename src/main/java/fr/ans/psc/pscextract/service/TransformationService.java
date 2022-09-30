@@ -54,9 +54,6 @@ public class TransformationService {
   @Value("${working.directory}")
   private String workingDirectory;
 
-  @Value("${first.name.count}")
-  private Integer firstNameCount;
-
   private String extractTime = "197001010001";
 
   public String getLinkString(String id) {
@@ -100,10 +97,6 @@ public class TransformationService {
       firstNames.sort(Comparator.comparing(FirstName::getOrder));
       StringBuilder sb = new StringBuilder();
 
-//      for (int i = 0; i < firstNameCount; i++) {
-//        if (i < firstNames.size()) sb.append(firstNames.get(i).getFirstName());
-//        sb.append("'");
-//      }
       firstNames.forEach(firstName -> sb.append(firstName.getFirstName()).append("'"));
 
       sb.deleteCharAt(sb.length() - 1);
