@@ -28,12 +28,15 @@ public class EmailService {
   @Value("${pscextract.mail.receiver}")
   private String receiver;
 
+  @Value("${secpsc.environment}")
+  private String platform;
+
   public void sendSimpleMessage(String subject, File latestExtract) {
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(sender);
     String[] allReceivers = receiver.split(",");
     message.setTo(allReceivers);
-    message.setSubject(subject);
+    message.setSubject(platform + " " + subject);
     message.setText(getEmailMessage(latestExtract));
 
     emailSender.send(message);

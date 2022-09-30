@@ -115,6 +115,7 @@ spring.mail.password={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{
 spring.mail.properties.mail.smtp.auth={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_smtp_auth }}{{ end }}
 spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_enable_tls }}{{ end }}
 pscextract.mail.receiver={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_receiver }}{{ end }}
+secpsc.environment={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.platform }}{{ end }}
 EOF
         destination = "secrets/application.properties"
       }
