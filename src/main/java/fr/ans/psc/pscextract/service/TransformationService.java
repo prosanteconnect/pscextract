@@ -100,10 +100,11 @@ public class TransformationService {
       firstNames.sort(Comparator.comparing(FirstName::getOrder));
       StringBuilder sb = new StringBuilder();
 
-      for (int i = 0; i < firstNameCount; i++) {
-        if (i < firstNames.size()) sb.append(firstNames.get(i).getFirstName());
-        sb.append("'");
-      }
+//      for (int i = 0; i < firstNameCount; i++) {
+//        if (i < firstNames.size()) sb.append(firstNames.get(i).getFirstName());
+//        sb.append("'");
+//      }
+      firstNames.forEach(firstName -> sb.append(firstName.getFirstName()).append("'"));
 
       sb.deleteCharAt(sb.length() - 1);
       return sb.toString();
@@ -149,12 +150,12 @@ public class TransformationService {
     return unwoundPsList;
   }
 
-  public String transformPsToLine(Ps ps) {
+  public String transformPsToLine(Ps ps, String id) {
     String activityCode = null;
     StringBuilder sb = new StringBuilder();
     sb.append(Optional.ofNullable(ps.getIdType()).orElse("")).append("|");
     sb.append(Optional.ofNullable(ps.getId()).orElse("")).append("|");
-    sb.append(Optional.ofNullable(ps.getNationalId()).orElse("")).append("|");
+    sb.append(Optional.ofNullable(id).orElse("")).append("|");
     sb.append(Optional.ofNullable(ps.getLastName()).orElse("")).append("|");
     sb.append(Optional.ofNullable(transformFirstNamesToStringWithApostrophes(ps.getFirstNames())).orElse("''")).append("|");
     sb.append(Optional.ofNullable(ps.getDateOfBirth()).orElse("")).append("|");
@@ -285,7 +286,9 @@ public class TransformationService {
         tempPsList = unwind(responsePsList);
 
         for (Ps ps : tempPsList) {
-          bw.write(transformPsToLine(ps));
+          for (String id : ps.getIds()) {
+            bw.write(transformPsToLine(ps, id));
+          }
           log.debug("Ps " + ps.getId() + " transformed and written");
         }
         page++;
