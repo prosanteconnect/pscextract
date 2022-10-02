@@ -36,7 +36,7 @@ public class EmailService {
     message.setFrom(sender);
     String[] allReceivers = receiver.split(",");
     message.setTo(allReceivers);
-    message.setSubject(platform + " " + subject);
+    message.setSubject(platform + " - " + subject);
     message.setText(getEmailMessage(latestExtract));
 
     emailSender.send(message);
