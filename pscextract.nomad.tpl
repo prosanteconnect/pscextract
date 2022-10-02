@@ -108,6 +108,7 @@ spring.mail.username={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_u
 spring.mail.password={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_password }}{{ end }}
 spring.mail.properties.mail.smtp.auth={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_smtp_auth }}{{ end }}
 spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_enable_tls }}{{ end }}
+secpsc.environment={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.platform }}{{ end }}
 pscextract.mail.receiver={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_receiver }}{{ end }}
 EOF
         destination = "secrets/application.properties"
