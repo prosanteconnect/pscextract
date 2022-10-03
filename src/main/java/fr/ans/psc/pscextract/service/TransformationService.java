@@ -146,8 +146,8 @@ public class TransformationService {
   public String transformPsToLine(Ps ps, String id) {
     String activityCode = null;
     StringBuilder sb = new StringBuilder();
-    sb.append(Optional.ofNullable(ps.getIdType()).orElse("")).append("|");
-    sb.append(Optional.ofNullable(ps.getId()).orElse("")).append("|");
+    sb.append(id.charAt(0)).append("|");
+    sb.append(id.substring(1)).append("|");
     sb.append(Optional.ofNullable(id).orElse("")).append("|");
     sb.append(Optional.ofNullable(ps.getLastName()).orElse("")).append("|");
     sb.append(Optional.ofNullable(transformFirstNamesToStringWithApostrophes(ps.getFirstNames())).orElse("''")).append("|");

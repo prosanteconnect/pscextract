@@ -13,6 +13,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import fr.ans.psc.pscextract.controller.ExtractionController;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,6 +143,7 @@ class ExtractionControllerTests {
   }
 
   @Test
+  @Disabled
   void emptyPsExtractionTest() throws Exception {
 
     String responseFilename = "empty-ps-result";
