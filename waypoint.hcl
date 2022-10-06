@@ -30,7 +30,8 @@ app "prosanteconnect/pscextract" {
       use "docker" {
         image = "${var.registry_path}/pscextract"
         tag   = gitrefpretty()
-        encoded_auth = filebase64("/secrets/dockerAuth.json")
+        username = var.registry_username
+        password = var.registry_password
       }
     }
   }
