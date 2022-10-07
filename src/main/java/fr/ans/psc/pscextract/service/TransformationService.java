@@ -231,7 +231,7 @@ public class TransformationService {
 
     public void setExtractionTime() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("ECT"));
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Paris"));
         extractTime = dtf.format(now);
     }
 
