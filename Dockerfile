@@ -19,4 +19,4 @@ COPY --from=build /usr/src/app/src/main/resources/aggregate.mongo /app/resources
 RUN usermod -d /app daemon && chown -R daemon: /app
 USER daemon
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/usr/app/pscextract.jar"]
+ENTRYPOINT ["sh", "-c", "exec java -jar /usr/app/pscextract.jar"]
