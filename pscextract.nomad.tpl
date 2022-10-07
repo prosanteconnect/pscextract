@@ -99,6 +99,7 @@ mongodb.name=mongodb
 mongodb.username={{ with secret "psc-ecosystem/${nomad_namespace}/mongodb" }}{{ .Data.data.root_user}}{{ end }}
 mongodb.password={{ with secret "psc-ecosystem/${nomad_namespace}/mongodb" }}{{ .Data.data.root_pass}}{{ end }}
 mongodb.admin.database=admin
+
 files.directory=/app/extract-repo
 working.directory=/app/extract-repo/working-directory
 api.base.url={{ range service "${nomad_namespace}-psc-api-maj-v2" }}http://{{ .Address }}:{{ .Port }}/psc-api-maj/api{{ end }}
@@ -108,6 +109,7 @@ extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule.zip
 page.size=50000
 first.name.count=3
 server.servlet.context-path=/pscextract/v1
+
 spring.mail.host={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_server_host }}{{ end }}
 spring.mail.port={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_server_port }}{{ end }}
 spring.mail.username={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_username }}{{ end }}
@@ -116,6 +118,8 @@ spring.mail.properties.mail.smtp.auth={{ with secret "psc-ecosystem/${nomad_name
 spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_enable_tls }}{{ end }}
 pscextract.mail.receiver={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_receiver }}{{ end }}
 secpsc.environment={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.platform }}{{ end }}
+
+{{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}logging.level.fr.ans.psc={{ .Data.data.log_level }}{{ end }}
 EOF
         destination = "secrets/application.properties"
       }
