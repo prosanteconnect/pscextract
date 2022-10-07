@@ -256,8 +256,8 @@ public class TransformationService {
             BigDecimal size = BigDecimal.valueOf(extractionController.getPageSize());
             List<Ps> response = extractionController.getPsApi().getPsByPage(BigDecimal.valueOf(page), size);
             assert !response.isEmpty();
-            log.info("number of Ps : {}", response.size());
-            log.info("Page " + page + " of size " + size + " received");
+            log.debug("number of Ps : {}", response.size());
+            log.debug("Page " + page + " of size " + size + " received");
             boolean outOfPages = false;
 
             do {
@@ -273,7 +273,7 @@ public class TransformationService {
                 page++;
                 try {
                     response = extractionController.getPsApi().getPsByPage(BigDecimal.valueOf(page), size);
-                    log.info("Page " + page + " of size " + size + " received, writing to file...");
+                    log.debug("Page " + page + " of size " + size + " received, writing to file...");
                 } catch (HttpStatusCodeException e) {
                     log.warn("Out of pages: " + e.getMessage());
                     if (e.getStatusCode() != HttpStatus.GONE) {

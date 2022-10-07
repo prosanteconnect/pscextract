@@ -16,13 +16,6 @@ job "pscextract" {
       value     = "data"
     }
 
-    update {
-      max_parallel = 1
-      min_healthy_time = "30s"
-      progress_deadline = "5m"
-      healthy_deadline = "2m"
-    }
-
     network {
       port "http" {
         to = 8080
@@ -72,7 +65,7 @@ job "pscextract" {
       }
       driver = "docker"
       env {
-        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx1792m -XX:+UseG1GC"
+        JAVA_TOOL_OPTIONS = "-Dspring.config.location=/secrets/application.properties -Xms256m -Xmx2048m -XX:+UseG1GC"
       }
       config {
         extra_hosts = [ "psc-api-maj.internal:$\u007BNOMAD_IP_http\u007D" ]
@@ -125,7 +118,7 @@ EOF
       }
       resources {
         cpu = 1000
-        memory = 2148
+        memory = 2560
       }
       service {
         name = "$\u007BNOMAD_NAMESPACE\u007D-$\u007BNOMAD_JOB_NAME\u007D"
