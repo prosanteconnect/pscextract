@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -230,7 +231,7 @@ public class TransformationService {
 
     public void setExtractionTime() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("ECT"));
         extractTime = dtf.format(now);
     }
 
@@ -267,7 +268,7 @@ public class TransformationService {
                     for (String id : ps.getIds()) {
                         bw.write(transformPsToLine(ps, id));
                     }
-                    log.debug("Ps " + ps.getId() + " transformed and written");
+                    log.trace("Ps " + ps.getId() + " transformed and written");
                 }
                 page++;
                 try {
