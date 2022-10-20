@@ -98,7 +98,7 @@ working.directory=/app/extract-repo/working-directory
 api.base.url={{ range service "${nomad_namespace}-psc-api-maj-v2" }}http://{{ .Address }}:{{ .Port }}/psc-api-maj/api{{ end }}
 
 extract.name=Extraction_Pro_sante_connect
-extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule.zip
+extract.test.name={{ with secret "psc-ecosystem/${nomad_namespace}/pscextract" }}{{ .Data.data.test_file_name }}{{ end }}
 page.size=50000
 first.name.count=3
 server.servlet.context-path=/pscextract/v1
