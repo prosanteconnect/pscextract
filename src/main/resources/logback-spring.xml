@@ -14,7 +14,7 @@
     <root level="info">
         <appender-ref ref="Console" />
     </root>
-    <logger name="fr.ans" level="trace" additivity="false">
+    <logger name="fr.ans.psc" level="info" additivity="false">
         <appender-ref ref="Console" />
     </logger>
 

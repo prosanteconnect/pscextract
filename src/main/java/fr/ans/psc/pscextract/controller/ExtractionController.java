@@ -125,29 +125,35 @@ public class ExtractionController {
 
   @PostMapping(value = "/generate-extract")
   public ResponseEntity<?> generateExtract(@RequestParam(required = false) Integer pageSize) {
-    if(!busy) {
+    if (!busy) {
       ForkJoinPool.commonPool().submit(() -> {
         try {
           busy = true;
-          if (pageSize != null)
+          if (pageSize != null) {
             this.pageSize = pageSize;
-          if (this.psApi == null)
+          }
+          if (this.psApi == null) {
             instantiateApi();
+          }
+
           File latestExtract = transformationService.extractToCsv(this);
           FileNamesUtil.cleanup(filesDirectory, extractTestName);
 
-          if (latestExtract != null)
+          if (latestExtract != null) {
             emailService.sendSimpleMessage("PSCEXTRACT - sécurisation effectuée", latestExtract);
-          else
+          }
+          else {
             emailService.sendSimpleMessage("PSCEXTRACT - sécurisation échouée", null);
+          }
         } catch (IOException e) {
           log.error("Exception raised :", e);
         } finally {
             busy = false;
         }
       });
-    }else
+    } else {
       return new ResponseEntity<>(HttpStatus.CONFLICT);
+    }
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

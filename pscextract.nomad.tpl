@@ -1,6 +1,7 @@
 job "pscextract" {
   datacenters = ["${datacenter}"]
   type = "service"
+  namespace = "${nomad_namespace}"
 
   vault {
     policies = ["psc-ecosystem"]
@@ -28,7 +29,7 @@ job "pscextract" {
         mount {
           type = "volume"
           target = "/app/extract-repo"
-          source = "pscextract-data"
+          source = "${nomad_namespace}-pscextract-data"
           readonly = false
           volume_options {
             no_copy = false
@@ -70,7 +71,7 @@ job "pscextract" {
         extra_hosts = [ "psc-api-maj.internal:$\u007BNOMAD_IP_http\u007D" ]
         image = "${artifact.image}:${artifact.tag}"
         volumes = [
-          "name=pscextract-data,io_priority=high,size=10,repl=3:/app/extract-repo"
+          "name=${nomad_namespace}-pscextract-data,io_priority=high,size=10,repl=3:/app/extract-repo"
         ]
         volume_driver = "pxd"
         ports = ["http"]
@@ -79,34 +80,39 @@ job "pscextract" {
         destination = "local/file.env"
         env = true
         data = <<EOF
-PUBLIC_HOSTNAME={{ with secret "psc-ecosystem/pscextract" }}{{ .Data.data.public_hostname }}{{ end }}
+PUBLIC_HOSTNAME={{ with secret "psc-ecosystem/${nomad_namespace}/pscextract" }}{{ .Data.data.public_hostname }}{{ end }}
 EOF
       }
       template {
         data = <<EOF
 server.servlet.context-path=/pscextract/v1
-mongodb.host={{ range service "psc-mongodb" }}{{ .Address }}{{ end }}
-mongodb.port={{ range service "psc-mongodb" }}{{ .Port }}{{ end }}
+mongodb.host={{ range service "${nomad_namespace}-psc-mongodb" }}{{ .Address }}{{ end }}
+mongodb.port={{ range service "${nomad_namespace}-psc-mongodb" }}{{ .Port }}{{ end }}
 mongodb.name=mongodb
-mongodb.username={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_user}}{{ end }}
-mongodb.password={{ with secret "psc-ecosystem/mongodb" }}{{ .Data.data.root_pass}}{{ end }}
+mongodb.username={{ with secret "psc-ecosystem/${nomad_namespace}/mongodb" }}{{ .Data.data.root_user}}{{ end }}
+mongodb.password={{ with secret "psc-ecosystem/${nomad_namespace}/mongodb" }}{{ .Data.data.root_pass}}{{ end }}
 mongodb.admin.database=admin
+
 files.directory=/app/extract-repo
 working.directory=/app/extract-repo/working-directory
-api.base.url=http://psc-api-maj.internal:9999/psc-api-maj/api
+api.base.url={{ range service "${nomad_namespace}-psc-api-maj-v2" }}http://{{ .Address }}:{{ .Port }}/psc-api-maj/api{{ end }}
 
 extract.name=Extraction_Pro_sante_connect
-extract.test.name=Extraction_Pro_sante_connect_cartes_de_test_bascule.zip
+extract.test.name={{ with secret "psc-ecosystem/${nomad_namespace}/pscextract" }}{{ .Data.data.test_file_name }}{{ end }}
 page.size=50000
 first.name.count=3
 server.servlet.context-path=/pscextract/v1
-spring.mail.host={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_server_host }}{{ end }}
-spring.mail.port={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_server_port }}{{ end }}
-spring.mail.username={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_username }}{{ end }}
-spring.mail.password={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_password }}{{ end }}
-spring.mail.properties.mail.smtp.auth={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_smtp_auth }}{{ end }}
-spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_enable_tls }}{{ end }}
-pscextract.mail.receiver={{ with secret "psc-ecosystem/admin" }}{{ .Data.data.mail_receiver }}{{ end }}
+
+spring.mail.host={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_server_host }}{{ end }}
+spring.mail.port={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_server_port }}{{ end }}
+spring.mail.username={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_username }}{{ end }}
+spring.mail.password={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_password }}{{ end }}
+spring.mail.properties.mail.smtp.auth={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_smtp_auth }}{{ end }}
+spring.mail.properties.mail.smtp.starttls.enable={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_enable_tls }}{{ end }}
+pscextract.mail.receiver={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.mail_receiver }}{{ end }}
+secpsc.environment={{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}{{ .Data.data.platform }}{{ end }}
+
+{{ with secret "psc-ecosystem/${nomad_namespace}/admin" }}logging.level.fr.ans.psc={{ .Data.data.log_level }}{{ end }}
 EOF
         destination = "secrets/application.properties"
       }
@@ -115,7 +121,7 @@ EOF
         memory = 2560
       }
       service {
-        name = "$\u007BNOMAD_JOB_NAME\u007D"
+        name = "$\u007BNOMAD_NAMESPACE\u007D-$\u007BNOMAD_JOB_NAME\u007D"
         tags = ["urlprefix-$\u007BPUBLIC_HOSTNAME\u007D/pscextract/v1/"]
         port = "http"
         check {
@@ -141,14 +147,14 @@ EOF
       }
       template {
         data = <<EOH
-LOGSTASH_HOST = {{ range service "logstash" }}{{ .Address }}:{{ .Port }}{{ end }}
+LOGSTASH_HOST = {{ range service "${nomad_namespace}-logstash" }}{{ .Address }}:{{ .Port }}{{ end }}
 ENVIRONMENT = "${datacenter}"
 EOH
         destination = "local/file.env"
         env = true
       }
       config {
-        image = "${registry_path}/filebeat:7.14.2"
+        image = "${registry_username}/filebeat:7.14.2"
       }
     }
   }
