@@ -21,7 +21,7 @@ app "prosanteconnect/pscextract" {
     use "docker" {
       build_args = {
         "proxy_address" = var.proxy_address
-        "PROSANTECONNECT_PACKAGE_GITHUB_TOKEN"=var.github_token
+        "PROSANTECONNECT_PACKAGE_GITHUB_TOKEN"="${var.github_token}"}
       }
       dockerfile = "${path.app}/${var.dockerfile_path}"
       disable_entrypoint = true
