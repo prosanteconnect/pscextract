@@ -21,6 +21,7 @@ app "prosanteconnect/pscextract" {
     use "docker" {
       build_args = {
         "proxy_address" = var.proxy_address
+        "PROSANTECONNECT_PACKAGE_GITHUB_TOKEN"=var.github_token
       }
       dockerfile = "${path.app}/${var.dockerfile_path}"
       disable_entrypoint = true
@@ -88,4 +89,11 @@ variable "proxy_address" {
 variable "registry_path" {
   type = string
   default = "registry.repo.proxy-dev-forge.asip.hst.fluxus.net/prosanteconnect"
+}
+
+variable "github_token" {
+  type    = string
+  default = ""
+  env     = ["PROSANTECONNECT_PACKAGE_GITHUB_TOKEN"]
+  sensitive = true
 }
